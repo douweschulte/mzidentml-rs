@@ -1,0 +1,35 @@
+use serde::{Deserialize, Serialize};
+
+use crate::{
+    elements::{cv_param::CvParam, is_element::IsElement},
+    error::ValidationError,
+    has_cv_params,
+    parsing::opt_space_separated_vec_parsing,
+};
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Modification {
+    #[serde(rename = "@avgMassDelta")]
+    pub avg_mass_deltaa: Option<f64>,
+    #[serde(rename = "@location")]
+    pub location: Option<usize>,
+    #[serde(rename = "@monoisotopicMassDel")]
+    pub monoisotopic_mass_del: Option<f64>,
+    #[serde(
+        default,
+        rename = "@residues",
+        with = "opt_space_separated_vec_parsing"
+    )]
+    pub residues: Option<Vec<char>>,
+    #[serde(rename = "cvParam")]
+    pub cv_params: Vec<CvParam>,
+}
+
+impl IsElement for Modification {
+    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
+        self.validate_cv_params(strict)?;
+        Ok(())
+    }
+}
+
+has_cv_params!(Modification, cv_params);

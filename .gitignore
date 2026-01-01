@@ -1,0 +1,8 @@
+# cargo / rust
+/target
+
+# OS
+.DS_Store
+
+# IDEs
+.vscode/
