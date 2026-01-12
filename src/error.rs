@@ -7,7 +7,7 @@ use crate::elements::has_cv_params::CvParamOccurence;
 /// Things which can got wrong working with mzIdentML files.
 #[derive(Clone, Debug, Error)]
 pub enum Error {
-    #[error("Error `{}` at element {}", .0.inner(), .0.path())]
+    #[error("Error `{}` at element MzIdentML.{}", .0.inner(), .0.path().to_string().trim_start_matches('.'))]
     Deserialization(#[from] serde_path_to_error::Error<quick_xml::DeError>),
     #[error("{0}")]
     Cv(#[from] CvError),
