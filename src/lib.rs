@@ -37,7 +37,7 @@ mod tests {
             let reader = BufReader::new(File::open(path).unwrap());
 
             let mzid_res = read(reader);
-            assert!(mzid_res.is_ok(), "{path}: {}", mzid_res.unwrap_err())
+            assert!(mzid_res.is_ok(), "{path}: {}", mzid_res.unwrap_err());
         }
     }
 }
