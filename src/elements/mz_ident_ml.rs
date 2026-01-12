@@ -37,7 +37,7 @@ pub struct MzIdentMl {
     pub version: String,
     #[serde(rename = "cvList")]
     pub cv_list: CvList,
-    #[serde(rename = "cvParam")]
+    #[serde(default, rename = "cvParam")]
     pub cv_params: Vec<CvParam>,
     #[serde(rename = "AnalysisSoftwareList")]
     pub analysis_software_list: Option<AnalysisSoftwareList>,
