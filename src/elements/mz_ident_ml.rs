@@ -18,9 +18,11 @@ use super::{cv_list::CvList, cv_param::CvParam, is_element::IsElement};
 pub struct MzIdentMl {
     #[serde(rename = "@xmlns")]
     pub xmlns: String,
+    // This is a workaround to get xsi-attributes running, see:
+    // https://github.com/tafia/quick-xml/issues/553#issuecomment-1432966843
     #[serde(rename = "@xmlns:xsi")]
+    #[serde(alias = "@xsi")]
     pub xmlns_xsi: String,
-
     // This is a workaround to get xsi-attributes running, see:
     // https://github.com/tafia/quick-xml/issues/553#issuecomment-1432966843
     #[serde(rename = "@xsi:schemaLocation")]
