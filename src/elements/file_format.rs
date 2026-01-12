@@ -8,7 +8,7 @@ use crate::{
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FileFormat {
-    #[serde(rename = "cvParam")]
+    #[serde(default, rename = "cvParam")]
     pub cv_params: Vec<CvParam>,
 }
 

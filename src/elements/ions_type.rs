@@ -16,9 +16,9 @@ pub struct IonType {
     pub index: Option<Vec<usize>>,
     #[serde(rename = "FragmentArray")]
     pub fragment_arrays: Vec<FragmentArray>,
-    #[serde(rename = "cvParam")]
+    #[serde(default, rename = "cvParam")]
     pub cv_params: Vec<CvParam>,
-    #[serde(rename = "userParam")]
+    #[serde(default, rename = "userParam")]
     pub user_params: Vec<UserParam>,
 }
 

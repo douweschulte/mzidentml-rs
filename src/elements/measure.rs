@@ -11,7 +11,7 @@ pub struct Measure {
     #[serde(rename = "@id")]
     pub id: String,
 
-    #[serde(rename = "cvParam")]
+    #[serde(default, rename = "cvParam")]
     pub cv_params: Vec<CvParam>,
 }
 

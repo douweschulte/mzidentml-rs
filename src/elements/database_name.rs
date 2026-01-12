@@ -10,7 +10,7 @@ use crate::{
 pub struct DatabaseName {
     #[serde(default, rename = "cvParam")]
     pub cv_param: Option<CvParam>,
-    #[serde(rename = "userParam")]
+    #[serde(default, rename = "userParam")]
     pub user_param: Option<UserParam>,
 }
 

@@ -9,9 +9,9 @@ use crate::{
 // TODO: Fully redundant to Exclude, except the error messages. Merge both and create enum or alias?
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Include {
-    #[serde(rename = "cvParam")]
+    #[serde(default, rename = "cvParam")]
     pub cv_params: Vec<CvParam>,
-    #[serde(rename = "userParam")]
+    #[serde(default, rename = "userParam")]
     pub user_params: Vec<UserParam>,
 }
 

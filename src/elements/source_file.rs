@@ -23,9 +23,9 @@ pub struct SourceFile {
     external_format_documentation: Option<ExternalFormatDocumentation>,
     #[serde(rename = "FileFormat")]
     file_format: FileFormat,
-    #[serde(rename = "cvParam")]
+    #[serde(default, rename = "cvParam")]
     pub cv_params: Vec<CvParam>,
-    #[serde(rename = "userParam")]
+    #[serde(default, rename = "userParam")]
     pub user_params: Vec<UserParam>,
 }
 

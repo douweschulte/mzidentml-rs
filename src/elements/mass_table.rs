@@ -21,9 +21,9 @@ pub struct MassTable {
     pub residues: Vec<Residue>,
     #[serde(rename = "AmbiguousResidue")]
     pub ambiguous_residues: Vec<AmbiguousResidue>,
-    #[serde(rename = "cvParam")]
+    #[serde(default, rename = "cvParam")]
     pub cv_params: Vec<CvParam>,
-    #[serde(rename = "userParam")]
+    #[serde(default, rename = "userParam")]
     pub user_params: Vec<UserParam>,
 }
 

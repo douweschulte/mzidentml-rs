@@ -9,7 +9,7 @@ use crate::{
 #[derive(Clone, Debug, Serialize, Deserialize)]
 
 pub struct FragmentTolerance {
-    #[serde(rename = "cvParam")]
+    #[serde(default, rename = "cvParam")]
     pub cv_params: Vec<CvParam>,
 }
 

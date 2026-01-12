@@ -10,9 +10,9 @@ use crate::{
 pub struct AmbiguousResidue {
     #[serde(rename = "@code")]
     pub code: char,
-    #[serde(rename = "cvParam")]
+    #[serde(default, rename = "cvParam")]
     pub cv_params: Vec<CvParam>,
-    #[serde(rename = "userParam")]
+    #[serde(default, rename = "userParam")]
     pub user_params: Vec<UserParam>,
 }
 

@@ -1,8 +1,12 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    elements::{is_element::IsElement, spectrum_identification_item::SpectrumIdentificationItem},
+    elements::{
+        cv_param::CvParam, is_element::IsElement,
+        spectrum_identification_item::SpectrumIdentificationItem, user_param::UserParam,
+    },
     error::ValidationError,
+    has_cv_params,
 };
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -18,6 +22,12 @@ pub struct SpectrumIdentificationResult {
     pub name: Option<String>,
     #[serde(rename = "SpectrumIdentificationItem")]
     pub spectrum_identification_items: Vec<SpectrumIdentificationItem>,
+
+    #[serde(default, rename = "cvParam")]
+    pub cv_params: Vec<CvParam>,
+
+    #[serde(default, rename = "userParam")]
+    pub user_params: Vec<UserParam>,
 }
 
 impl IsElement for SpectrumIdentificationResult {
@@ -46,6 +56,24 @@ impl IsElement for SpectrumIdentificationResult {
         for item in &self.spectrum_identification_items {
             item.validate(strict)?;
         }
+
+        self.validate_cv_params(strict)?;
+
+        for param in self.user_params.iter() {
+            param.validate(strict)?;
+        }
+
         Ok(())
     }
 }
+
+has_cv_params!(
+    SpectrumIdentificationResult,
+    cv_params,
+    [CvParamRule {
+        cv_name: "MS",
+        id: 1001405,
+        occurence: CvParamOccurence::MayOnceOrMany,
+        supplies_children: true
+    }]
+);
