@@ -53,3 +53,8 @@ src/
 
 ### Elements
 The structs for the elements are completely hand crafted. In general, it would be a good idea to assemble feature complete mzIdentMl files for each version of the format and use [xml_schema_generator](https://github.com/Thomblin/xml_schema_generator) to generate the struct for each element automatically, clean them up and just implement the necessary traits.
+
+
+### Test data
+* [HUPO-PSI](https://www.psidev.info/mzidentml): scores_and_thresholds_1_3_0_draft.mzid
+* [Douwe Schulte](https://github.com/douweschulte): `novor_v3.40.910_202512_results.mzid` & `novor_v3.40.910_202512_results.mzid`

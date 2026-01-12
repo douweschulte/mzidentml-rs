@@ -25,13 +25,19 @@ mod tests {
 
     use super::read;
 
+    pub static MZID_FILE_PATHS: [&str; 3] = [
+        "./test_data/scores_and_thresholds_1_3_0_draft.mzid",
+        "./test_data/novor_v3.40.910_202512_results.mzid",
+        "./test_data/byonic_v5.1.mzid",
+    ];
+
     #[test]
     fn test_read() {
-        let reader = BufReader::new(
-            File::open("./test_data/scores_and_thresholds_1_3_0_draft.mzid").unwrap(),
-        );
+        for path in MZID_FILE_PATHS {
+            let reader = BufReader::new(File::open(path).unwrap());
 
-        let mzid_res = read(reader);
-        assert!(mzid_res.is_ok(), "{}", mzid_res.unwrap_err())
+            let mzid_res = read(reader);
+            assert!(mzid_res.is_ok(), "{path}: {}", mzid_res.unwrap_err())
+        }
     }
 }
