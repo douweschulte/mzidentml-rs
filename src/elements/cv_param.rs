@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{error::ValidationError, parsing::cv_id_parsing};
+use crate::{elements::attributes::semver::SemVer, error::ValidationError, parsing::cv_id_parsing};
 
 use super::is_element::IsElement;
 
@@ -24,7 +24,7 @@ pub struct CvParam {
 }
 
 impl IsElement for CvParam {
-    fn validate(&self, _strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, _version: &SemVer, _strict: bool) -> Result<(), ValidationError> {
         if self.cv_ref.is_empty() {
             return Err(ValidationError::EmptyAttribute("cvParam", "cvRef"));
         }

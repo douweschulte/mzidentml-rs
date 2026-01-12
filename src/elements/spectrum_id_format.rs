@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+use crate::elements::attributes::semver::SemVer;
 use crate::error::ValidationError;
 use crate::{
     elements::{cv_param::CvParam, is_element::IsElement},
@@ -13,14 +14,14 @@ pub struct SpectrumIDFormat {
 }
 
 impl IsElement for SpectrumIDFormat {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
         if self.cv_params.len() != 1 {
-            return Err(ValidationError::ChildRequiredOnce(
+            return Err(ValidationError::ChildRequiredAtLeastOnce(
                 "SpectrumIDFormat",
                 "cvParams",
             ));
         }
-        self.validate_cv_params(strict)
+        self.validate_cv_params(version, strict)
     }
 }
 

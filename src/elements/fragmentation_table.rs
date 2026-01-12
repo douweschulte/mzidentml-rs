@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    elements::{is_element::IsElement, measure::Measure},
+    elements::{attributes::semver::SemVer, is_element::IsElement, measure::Measure},
     error::ValidationError,
 };
 
@@ -12,16 +12,16 @@ pub struct FragmentationTable {
 }
 
 impl IsElement for FragmentationTable {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
         if self.measures.is_empty() {
-            return Err(ValidationError::ChildRequiredOnce(
+            return Err(ValidationError::ChildRequiredAtLeastOnce(
                 "FragmentationTable",
                 "Measure",
             ));
         }
 
         for measure in &self.measures {
-            measure.validate(strict)?;
+            measure.validate(version, strict)?;
         }
 
         Ok(())

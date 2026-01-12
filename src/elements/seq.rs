@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::error::ValidationError;
+use crate::{elements::attributes::semver::SemVer, error::ValidationError};
 
 use super::is_element::IsElement;
 
@@ -8,7 +8,7 @@ use super::is_element::IsElement;
 pub struct Seq(String);
 
 impl IsElement for Seq {
-    fn validate(&self, _strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, _version: &SemVer, _strict: bool) -> Result<(), ValidationError> {
         Ok(())
     }
 }

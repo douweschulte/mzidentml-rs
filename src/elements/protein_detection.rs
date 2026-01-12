@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use chrono::{DateTime, FixedOffset};
 
+use crate::elements::attributes::semver::SemVer;
 use crate::elements::{
     input_spectrum_identifications::InputSpectrumIdentifications, is_element::IsElement,
 };
@@ -25,7 +26,7 @@ pub struct ProteinDetection {
 }
 
 impl IsElement for ProteinDetection {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
         if self.id.is_empty() {
             return Err(ValidationError::EmptyAttribute("ProteinDetection", "id"));
         }
@@ -43,14 +44,14 @@ impl IsElement for ProteinDetection {
         }
 
         if self.input_spectrum_identifications.is_empty() {
-            return Err(ValidationError::ChildRequiredOnce(
+            return Err(ValidationError::ChildRequiredAtLeastOnce(
                 "ProteinDetection",
                 "InputSpectrumIdentifications",
             ));
         }
 
         for input_spec_id in self.input_spectrum_identifications.iter() {
-            input_spec_id.validate(strict)?;
+            input_spec_id.validate(version, strict)?;
         }
         Ok(())
     }

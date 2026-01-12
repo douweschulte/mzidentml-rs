@@ -2,7 +2,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     elements::{
-        is_element::IsElement, spectrum_identification_item_ref::SpectrumIdentificationItemRef,
+        attributes::semver::SemVer, is_element::IsElement,
+        spectrum_identification_item_ref::SpectrumIdentificationItemRef,
     },
     error::ValidationError,
 };
@@ -17,7 +18,7 @@ pub struct PeptideHypothesis {
 }
 
 impl IsElement for PeptideHypothesis {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
         if self.peptide_evidence_ref.is_empty() {
             return Err(ValidationError::EmptyAttribute(
                 "PeptideHypothesi",
@@ -26,14 +27,14 @@ impl IsElement for PeptideHypothesis {
         }
 
         if self.spectrum_identification_item_refs.is_empty() {
-            return Err(ValidationError::ChildRequiredOnce(
+            return Err(ValidationError::ChildRequiredAtLeastOnce(
                 "PeptideHypothesis",
                 "SpectrumIdentificationItemRef",
             ));
         }
 
         for spectrum_identification_item_ref in &self.spectrum_identification_item_refs {
-            spectrum_identification_item_ref.validate(strict)?;
+            spectrum_identification_item_ref.validate(version, strict)?;
         }
         Ok(())
     }

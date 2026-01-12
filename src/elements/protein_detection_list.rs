@@ -2,8 +2,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     elements::{
-        cv_param::CvParam, is_element::IsElement, protein_ambiguity_group::ProteinAmbiguityGroup,
-        user_param::UserParam,
+        attributes::semver::SemVer, cv_param::CvParam, is_element::IsElement,
+        protein_ambiguity_group::ProteinAmbiguityGroup, user_param::UserParam,
     },
     error::ValidationError,
     has_cv_params,
@@ -26,7 +26,7 @@ pub struct ProteinDetectionList {
 }
 
 impl IsElement for ProteinDetectionList {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
         if self.id.is_empty() {
             return Err(ValidationError::EmptyAttribute(
                 "ProteinDetectionList",
@@ -35,13 +35,13 @@ impl IsElement for ProteinDetectionList {
         }
 
         for protein_ambiguity_group in &self.protein_ambiguity_groups {
-            protein_ambiguity_group.validate(strict)?;
+            protein_ambiguity_group.validate(version, strict)?;
         }
 
-        self.validate_cv_params(strict)?;
+        self.validate_cv_params(version, strict)?;
 
         for param in self.user_params.iter() {
-            param.validate(strict)?;
+            param.validate(version, strict)?;
         }
 
         Ok(())

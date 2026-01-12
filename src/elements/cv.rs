@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::error::ValidationError;
+use crate::{elements::attributes::semver::SemVer, error::ValidationError};
 
 use super::is_element::IsElement;
 
@@ -17,7 +17,7 @@ pub struct Cv {
 }
 
 impl IsElement for Cv {
-    fn validate(&self, _strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, _version: &SemVer, _strict: bool) -> Result<(), ValidationError> {
         if self.id.is_empty() {
             return Err(ValidationError::EmptyAttribute("CV", "id]"));
         }

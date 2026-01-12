@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     elements::{
-        cv_param::CvParam, is_element::IsElement,
+        attributes::semver::SemVer, cv_param::CvParam, is_element::IsElement,
         protein_detection_hypothesis::ProteinDetectionHypothesis, user_param::UserParam,
     },
     error::ValidationError,
@@ -26,7 +26,7 @@ pub struct ProteinAmbiguityGroup {
 }
 
 impl IsElement for ProteinAmbiguityGroup {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
         if self.id.is_empty() {
             return Err(ValidationError::EmptyAttribute(
                 "ProteinAmbiguityGroup",
@@ -35,20 +35,20 @@ impl IsElement for ProteinAmbiguityGroup {
         }
 
         if self.protein_detection_hypotheses.is_empty() {
-            return Err(ValidationError::ChildRequiredOnce(
+            return Err(ValidationError::ChildRequiredAtLeastOnce(
                 "ProteinAmbiguityGroup",
                 "ProteinDetectionHypothesis",
             ));
         }
 
         for protein_detection_hypothesis in &self.protein_detection_hypotheses {
-            protein_detection_hypothesis.validate(strict)?;
+            protein_detection_hypothesis.validate(version, strict)?;
         }
 
-        self.validate_cv_params(strict)?;
+        self.validate_cv_params(version, strict)?;
 
         for param in self.user_params.iter() {
-            param.validate(strict)?;
+            param.validate(version, strict)?;
         }
 
         Ok(())

@@ -5,6 +5,7 @@ use std::sync::Arc;
 use mzcv::CVData;
 
 use crate::controlled_vocabularies::{CvDataWithChildren, MS_CVINDEX, UNIMOD_CVINDEX};
+use crate::elements::attributes::semver::SemVer;
 use crate::elements::cv_param::CvParam;
 use crate::elements::is_element::IsElement;
 use crate::error::{CvError, ValidationError};
@@ -298,9 +299,9 @@ pub trait HasCvParams {
     /// # Arguments
     /// * `strict` - If true, missing SHOULD terms will return an error
     ///
-    fn validate_cv_params(&self, strict: bool) -> Result<(), ValidationError> {
+    fn validate_cv_params(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
         for param in self.cv_params() {
-            param.validate(strict)?;
+            param.validate(version, strict)?;
         }
         for rule in Self::cv_param_rules() {
             rule.validate(self.cv_params(), strict)?;

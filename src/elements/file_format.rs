@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    elements::{cv_param::CvParam, is_element::IsElement},
+    elements::{attributes::semver::SemVer, cv_param::CvParam, is_element::IsElement},
     error::ValidationError,
     has_cv_params,
 };
@@ -13,12 +13,15 @@ pub struct FileFormat {
 }
 
 impl IsElement for FileFormat {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
         if self.cv_params.len() != 1 {
-            return Err(ValidationError::ChildRequiredOnce("FileFormat", "cvParam"));
+            return Err(ValidationError::ChildRequiredAtLeastOnce(
+                "FileFormat",
+                "cvParam",
+            ));
         }
 
-        self.validate_cv_params(strict)
+        self.validate_cv_params(version, strict)
     }
 }
 

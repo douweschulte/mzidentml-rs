@@ -2,8 +2,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     elements::{
-        cv_param::CvParam, is_element::IsElement, peptide_hypothesis::PeptideHypothesis,
-        user_param::UserParam,
+        attributes::semver::SemVer, cv_param::CvParam, is_element::IsElement,
+        peptide_hypothesis::PeptideHypothesis, user_param::UserParam,
     },
     error::ValidationError,
     has_cv_params,
@@ -30,7 +30,7 @@ pub struct ProteinDetectionHypothesis {
 }
 
 impl IsElement for ProteinDetectionHypothesis {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
         if self.db_sequence_ref.is_empty() {
             return Err(ValidationError::EmptyAttribute(
                 "ProteinDetectionHypothesis",
@@ -45,20 +45,20 @@ impl IsElement for ProteinDetectionHypothesis {
         }
 
         if self.peptide_hypotheses.is_empty() {
-            return Err(ValidationError::ChildRequiredOnce(
+            return Err(ValidationError::ChildRequiredAtLeastOnce(
                 "ProteinDetectionHypothesis",
                 "PeptideHypothesis",
             ));
         }
 
         for peptide_hypothesis in &self.peptide_hypotheses {
-            peptide_hypothesis.validate(strict)?;
+            peptide_hypothesis.validate(version, strict)?;
         }
 
-        self.validate_cv_params(strict)?;
+        self.validate_cv_params(version, strict)?;
 
         for param in self.user_params.iter() {
-            param.validate(strict)?;
+            param.validate(version, strict)?;
         }
 
         Ok(())

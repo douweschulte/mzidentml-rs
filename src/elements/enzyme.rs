@@ -1,7 +1,10 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    elements::{enzyme_name::EnzymeName, is_element::IsElement, site_regexp::SiteRegexp},
+    elements::{
+        attributes::semver::SemVer, enzyme_name::EnzymeName, is_element::IsElement,
+        site_regexp::SiteRegexp,
+    },
     error::ValidationError,
 };
 
@@ -28,17 +31,17 @@ pub struct Enzyme {
 }
 
 impl IsElement for Enzyme {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
         if self.id.is_empty() {
             return Err(ValidationError::EmptyAttribute("Enzyme", "id"));
         }
 
         if let Some(site_regexp) = &self.site_regexp {
-            site_regexp.validate(strict)?;
+            site_regexp.validate(version, strict)?;
         }
 
         if let Some(enzyme_name) = &self.enzyme_name {
-            enzyme_name.validate(strict)?;
+            enzyme_name.validate(version, strict)?;
         }
 
         Ok(())

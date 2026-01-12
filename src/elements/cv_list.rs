@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::error::ValidationError;
+use crate::{elements::attributes::semver::SemVer, error::ValidationError};
 
 use super::{cv::Cv, is_element::IsElement, is_list::IsList};
 
@@ -11,9 +11,9 @@ pub struct CvList {
 }
 
 impl IsElement for CvList {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
         for cv in &self.cv {
-            cv.validate(strict)?;
+            cv.validate(version, strict)?;
         }
         Ok(())
     }

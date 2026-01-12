@@ -2,9 +2,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     elements::{
-        cv_param::CvParam, is_element::IsElement, modification::Modification,
-        peptide_sequence::PeptideSequence, substitution_modification::SubstitutionModification,
-        user_param::UserParam,
+        attributes::semver::SemVer, cv_param::CvParam, is_element::IsElement,
+        modification::Modification, peptide_sequence::PeptideSequence,
+        substitution_modification::SubstitutionModification, user_param::UserParam,
     },
     error::ValidationError,
     has_cv_params,
@@ -29,24 +29,24 @@ pub struct Peptide {
 }
 
 impl IsElement for Peptide {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
         if self.id.is_empty() {
             return Err(ValidationError::EmptyAttribute("Peptide", "id"));
         }
 
-        self.peptide_sequence.validate(strict)?;
+        self.peptide_sequence.validate(version, strict)?;
 
         for modification in self.modification.iter() {
-            modification.validate(strict)?;
+            modification.validate(version, strict)?;
         }
 
         for modification in self.substitution_modification.iter() {
-            modification.validate(strict)?;
+            modification.validate(version, strict)?;
         }
 
-        self.validate_cv_params(strict)?;
+        self.validate_cv_params(version, strict)?;
         for user_param in &self.user_params {
-            user_param.validate(strict)?;
+            user_param.validate(version, strict)?;
         }
 
         Ok(())

@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    elements::{is_element::IsElement, role::Role},
+    elements::{attributes::semver::SemVer, is_element::IsElement, role::Role},
     error::ValidationError,
 };
 
@@ -14,8 +14,8 @@ pub struct ContactRole {
 }
 
 impl IsElement for ContactRole {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
-        self.role.validate(strict)?;
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
+        self.role.validate(version, strict)?;
         Ok(())
     }
 }

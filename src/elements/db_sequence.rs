@@ -1,7 +1,10 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    elements::{cv_param::CvParam, is_element::IsElement, seq::Seq, user_param::UserParam},
+    elements::{
+        attributes::semver::SemVer, cv_param::CvParam, is_element::IsElement, seq::Seq,
+        user_param::UserParam,
+    },
     error::ValidationError,
     has_cv_params,
 };
@@ -29,7 +32,7 @@ pub struct DbSequence {
 }
 
 impl IsElement for DbSequence {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
         if self.accession.is_empty() {
             return Err(ValidationError::EmptyAttribute("DbSequence", "accession"));
         }
@@ -45,12 +48,12 @@ impl IsElement for DbSequence {
             ));
         }
 
-        self.validate_cv_params(strict)?;
+        self.validate_cv_params(version, strict)?;
 
         for user_param in &self.user_params {
-            user_param.validate(strict)?;
+            user_param.validate(version, strict)?;
         }
-        self.sequence.validate(strict)?;
+        self.sequence.validate(version, strict)?;
 
         Ok(())
     }

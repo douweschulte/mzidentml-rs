@@ -2,7 +2,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     elements::{
-        input_spectra::InputSpectra, is_element::IsElement, search_database_ref::SearchDatabaseRef,
+        attributes::semver::SemVer, input_spectra::InputSpectra, is_element::IsElement,
+        search_database_ref::SearchDatabaseRef,
     },
     error::ValidationError,
 };
@@ -26,7 +27,7 @@ pub struct SpectrumIdentification {
 }
 
 impl IsElement for SpectrumIdentification {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
         if self.id.is_empty() {
             return Err(ValidationError::EmptyAttribute(
                 "SpectrumIdentification",
@@ -46,19 +47,19 @@ impl IsElement for SpectrumIdentification {
             ));
         }
         if self.input_spectra.is_empty() {
-            return Err(ValidationError::ChildRequiredOnce(
+            return Err(ValidationError::ChildRequiredAtLeastOnce(
                 "SpectrumIdentification",
                 "InputSpectra",
             ));
         }
         if self.search_database_refs.is_empty() {
-            return Err(ValidationError::ChildRequiredOnce(
+            return Err(ValidationError::ChildRequiredAtLeastOnce(
                 "SpectrumIdentification",
                 "SearchDatabaseRef",
             ));
         }
         for search_db_ref in self.search_database_refs.iter() {
-            search_db_ref.validate(strict)?;
+            search_db_ref.validate(version, strict)?;
         }
         Ok(())
     }

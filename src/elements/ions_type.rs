@@ -2,8 +2,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     elements::{
-        cv_param::CvParam, fragment_array::FragmentArray, is_element::IsElement,
-        user_param::UserParam,
+        attributes::semver::SemVer, cv_param::CvParam, fragment_array::FragmentArray,
+        is_element::IsElement, user_param::UserParam,
     },
     error::ValidationError,
     has_cv_params,
@@ -23,19 +23,21 @@ pub struct IonType {
 }
 
 impl IsElement for IonType {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
         for array in self.fragment_arrays.iter() {
-            array.validate(strict)?;
+            array.validate(version, strict)?;
         }
 
         if self.cv_params.is_empty() {
-            return Err(ValidationError::ChildRequiredOnce("IonType", "cvParam"));
+            return Err(ValidationError::ChildRequiredAtLeastOnce(
+                "IonType", "cvParam",
+            ));
         }
 
-        self.validate_cv_params(strict)?;
+        self.validate_cv_params(version, strict)?;
 
         for param in self.user_params.iter() {
-            param.validate(strict)?;
+            param.validate(version, strict)?;
         }
 
         Ok(())

@@ -1,7 +1,9 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    elements::{analysis_software::AnalysisSoftware, is_element::IsElement},
+    elements::{
+        analysis_software::AnalysisSoftware, attributes::semver::SemVer, is_element::IsElement,
+    },
     error::ValidationError,
 };
 
@@ -12,16 +14,16 @@ pub struct AnalysisSoftwareList {
 }
 
 impl IsElement for AnalysisSoftwareList {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
         if self.analysis_software.is_empty() {
-            return Err(ValidationError::ChildRequiredOnce(
+            return Err(ValidationError::ChildRequiredAtLeastOnce(
                 "AnalysisSoftwareList",
                 "AnalysisSoftware",
             ));
         }
 
         for software in &self.analysis_software {
-            software.validate(strict)?;
+            software.validate(version, strict)?;
         }
         Ok(())
     }

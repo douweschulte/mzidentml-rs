@@ -1,7 +1,9 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    elements::{is_element::IsElement, translation_table::TranslationTable},
+    elements::{
+        attributes::semver::SemVer, is_element::IsElement, translation_table::TranslationTable,
+    },
     error::ValidationError,
     parsing::opt_space_separated_vec_parsing,
 };
@@ -15,9 +17,9 @@ pub struct DatabaseTranslation {
 }
 
 impl IsElement for DatabaseTranslation {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
         for table in &self.translation_tables {
-            table.validate(strict)?;
+            table.validate(version, strict)?;
         }
         Ok(())
     }

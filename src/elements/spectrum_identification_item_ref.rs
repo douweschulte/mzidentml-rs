@@ -1,6 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{elements::is_element::IsElement, error::ValidationError};
+use crate::{
+    elements::{attributes::semver::SemVer, is_element::IsElement},
+    error::ValidationError,
+};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SpectrumIdentificationItemRef {
@@ -9,7 +12,7 @@ pub struct SpectrumIdentificationItemRef {
 }
 
 impl IsElement for SpectrumIdentificationItemRef {
-    fn validate(&self, _strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, _version: &SemVer, _strict: bool) -> Result<(), ValidationError> {
         if self.spectrum_identification_item_ref.is_empty() {
             return Err(ValidationError::EmptyAttribute(
                 "SpectrumIdentificationItemRef",

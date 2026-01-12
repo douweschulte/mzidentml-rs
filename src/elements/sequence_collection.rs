@@ -2,8 +2,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     elements::{
-        db_sequence::DbSequence, is_element::IsElement, peptide::Peptide,
-        peptide_evidence::PeptideEvidence,
+        attributes::semver::SemVer, db_sequence::DbSequence, is_element::IsElement,
+        peptide::Peptide, peptide_evidence::PeptideEvidence,
     },
     error::ValidationError,
 };
@@ -19,15 +19,15 @@ pub struct SequenceCollection {
 }
 
 impl IsElement for SequenceCollection {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
         for db_sequence in &self.db_sequences {
-            db_sequence.validate(strict)?;
+            db_sequence.validate(version, strict)?;
         }
         for peptide in &self.peptides {
-            peptide.validate(strict)?;
+            peptide.validate(version, strict)?;
         }
         for peptide_evidence in &self.peptide_evidence {
-            peptide_evidence.validate(strict)?;
+            peptide_evidence.validate(version, strict)?;
         }
         Ok(())
     }

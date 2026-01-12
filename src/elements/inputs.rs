@@ -2,8 +2,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     elements::{
-        is_element::IsElement, search_database::SearchDatabase, source_file::SourceFile,
-        spectra_data::SpectraData,
+        attributes::semver::SemVer, is_element::IsElement, search_database::SearchDatabase,
+        source_file::SourceFile, spectra_data::SpectraData,
     },
     error::ValidationError,
 };
@@ -19,19 +19,22 @@ pub struct Inputs {
 }
 
 impl IsElement for Inputs {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
         for source_file in &self.source_files {
-            source_file.validate(strict)?;
+            source_file.validate(version, strict)?;
         }
         for search_database in &self.search_databases {
-            search_database.validate(strict)?;
+            search_database.validate(version, strict)?;
         }
 
         if self.spectra_data.is_empty() {
-            return Err(ValidationError::ChildRequiredOnce("Inputs", "SpectraData"));
+            return Err(ValidationError::ChildRequiredAtLeastOnce(
+                "Inputs",
+                "SpectraData",
+            ));
         }
         for spectra_data in &self.spectra_data {
-            spectra_data.validate(strict)?;
+            spectra_data.validate(version, strict)?;
         }
         Ok(())
     }

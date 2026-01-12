@@ -2,8 +2,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     elements::{
-        cv_param::CvParam, external_format_documentation::ExternalFormatDocumentation,
-        file_format::FileFormat, is_element::IsElement, user_param::UserParam,
+        attributes::semver::SemVer, cv_param::CvParam,
+        external_format_documentation::ExternalFormatDocumentation, file_format::FileFormat,
+        is_element::IsElement, user_param::UserParam,
     },
     error::ValidationError,
     has_cv_params,
@@ -22,7 +23,7 @@ pub struct SourceFile {
     #[serde(rename = "ExternalFormatDocumentation")]
     external_format_documentation: Option<ExternalFormatDocumentation>,
     #[serde(rename = "FileFormat")]
-    file_format: FileFormat,
+    file_format: Option<FileFormat>,
     #[serde(default, rename = "cvParam")]
     pub cv_params: Vec<CvParam>,
     #[serde(default, rename = "userParam")]
@@ -30,7 +31,7 @@ pub struct SourceFile {
 }
 
 impl IsElement for SourceFile {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
         if self.id.is_empty() {
             return Err(ValidationError::EmptyAttribute("SourceFile", "id"));
         }
@@ -39,14 +40,20 @@ impl IsElement for SourceFile {
         }
 
         if let Some(external_format_documentation) = &self.external_format_documentation {
-            external_format_documentation.validate(strict)?;
+            external_format_documentation.validate(version, strict)?;
         }
-        self.file_format.validate(strict)?;
 
-        self.validate_cv_params(strict)?;
+        if let Some(file_format) = self.file_format.as_ref() {
+            file_format.validate(version, strict)?;
+        } else if version.minor() >= 2 {
+            // File format is introduced in this element in version 1.2
+            return Err(ValidationError::MissingChild("SourceFile", "FileFormat"));
+        }
+
+        self.validate_cv_params(version, strict)?;
 
         for param in self.user_params.iter() {
-            param.validate(strict)?;
+            param.validate(version, strict)?;
         }
 
         Ok(())

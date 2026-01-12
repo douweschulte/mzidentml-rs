@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    elements::{cv_param::CvParam, is_element::IsElement},
+    elements::{attributes::semver::SemVer, cv_param::CvParam, is_element::IsElement},
     error::ValidationError,
     has_cv_params,
     parsing::opt_space_separated_vec_parsing,
@@ -26,8 +26,8 @@ pub struct Modification {
 }
 
 impl IsElement for Modification {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
-        self.validate_cv_params(strict)?;
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
+        self.validate_cv_params(version, strict)?;
         Ok(())
     }
 }

@@ -1,17 +1,14 @@
 # mzIdentML
 
-Reader for [mzIdentMl-files version 1.3](https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/2aacf89e164afc96f71dee7e433c055718d7db0d/specification_document-releases/specdoc1_3/mzIdentML1.3.0-release.pdf).
+Reader for [mzIdentMl-files](https://www.psidev.info/mzidentml).
 
 ## Usage
-The crate is for those who are familiar with the format and want to extract information to further process. Files can be loaded directly into memory or indexed first to support random or streaming access to the data.  
+The crate is for those who are familiar with the format and want to extract information to further processing. Files can be loaded directly into memory or indexed first to support random or streaming access to the data.  
 The parser is relative relaxed and only complains about missing required attributes or missing children during file loading. In case 1 or many children of the same type should be present but missing, the parser will just create an empty vector. This is checked during optional validation.
 
 
 ### Validation
-Validating is optional and can be skipped. If used, the validation process can come across two major errors:
-* Attribute errors start like `MzIdentML[attribute_name]`
-* Children errors start like `MzIdentML > childElementName`
-while they are not two types yet, it is mentioned that they are displayed differently.
+Validating is optional and has initial support for different version of the file format.
 
 ## Development
 Scattered arround the code are `TODO` comments which can be worked on. Please submit your work as PRs.

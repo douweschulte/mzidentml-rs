@@ -1,7 +1,10 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    elements::{analysis_data::AnalysisData, inputs::Inputs, is_element::IsElement},
+    elements::{
+        analysis_data::AnalysisData, attributes::semver::SemVer, inputs::Inputs,
+        is_element::IsElement,
+    },
     error::ValidationError,
 };
 
@@ -14,8 +17,8 @@ pub struct DataCollection {
 }
 
 impl IsElement for DataCollection {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
-        self.inputs.validate(strict)?;
-        self.analysis_data.validate(strict)
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
+        self.inputs.validate(version, strict)?;
+        self.analysis_data.validate(version, strict)
     }
 }

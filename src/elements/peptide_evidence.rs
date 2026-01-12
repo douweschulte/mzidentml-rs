@@ -2,8 +2,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     elements::{
-        ALLOWED_SUBSTITUTION_RESIDUES, cv_param::CvParam, is_element::IsElement,
-        user_param::UserParam,
+        ALLOWED_SUBSTITUTION_RESIDUES, attributes::semver::SemVer, cv_param::CvParam,
+        is_element::IsElement, user_param::UserParam,
     },
     error::ValidationError,
     has_cv_params,
@@ -40,7 +40,7 @@ pub struct PeptideEvidence {
 }
 
 impl IsElement for PeptideEvidence {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
         if self.db_sequence_ref.is_empty() {
             return Err(ValidationError::EmptyAttribute(
                 "PeptideEvidence",
@@ -79,10 +79,10 @@ impl IsElement for PeptideEvidence {
             ));
         }
 
-        self.validate_cv_params(strict)?;
+        self.validate_cv_params(version, strict)?;
 
         for param in self.user_params.iter() {
-            param.validate(strict)?;
+            param.validate(version, strict)?;
         }
 
         Ok(())

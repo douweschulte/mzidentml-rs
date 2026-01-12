@@ -7,6 +7,8 @@ pub mod analysis_params;
 pub mod analysis_protocol_collection;
 pub mod analysis_software;
 pub mod analysis_software_list;
+/// Element attributes which contais more than basic types
+pub mod attributes;
 pub mod audit_collection;
 pub mod bibliographic_reference;
 pub mod contact_role;

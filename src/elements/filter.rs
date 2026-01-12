@@ -2,7 +2,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     elements::{
-        exclude::Exclude, filter_type::FilterType, include::Include, is_element::IsElement,
+        attributes::semver::SemVer, exclude::Exclude, filter_type::FilterType, include::Include,
+        is_element::IsElement,
     },
     error::ValidationError,
 };
@@ -18,15 +19,15 @@ pub struct Filter {
 }
 
 impl IsElement for Filter {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
-        self.filter_type.validate(strict)?;
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
+        self.filter_type.validate(version, strict)?;
 
         if let Some(include) = &self.include {
-            include.validate(strict)?;
+            include.validate(version, strict)?;
         }
 
         if let Some(exclude) = &self.exclude {
-            exclude.validate(strict)?;
+            exclude.validate(version, strict)?;
         }
 
         Ok(())

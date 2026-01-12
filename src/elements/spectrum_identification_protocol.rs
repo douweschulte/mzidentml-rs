@@ -2,11 +2,11 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     elements::{
-        additional_search_params::AdditionalSearchParams, database_filters::DatabaseFilters,
-        database_translation::DatabaseTranslation, enzymes::Enzymes,
-        fragment_tolerance::FragmentTolerance, is_element::IsElement, mass_table::MassTable,
-        modification_params::ModificationParams, parent_tolerance::ParentTolerance,
-        search_type::SearchType, threshold::Threshold,
+        additional_search_params::AdditionalSearchParams, attributes::semver::SemVer,
+        database_filters::DatabaseFilters, database_translation::DatabaseTranslation,
+        enzymes::Enzymes, fragment_tolerance::FragmentTolerance, is_element::IsElement,
+        mass_table::MassTable, modification_params::ModificationParams,
+        parent_tolerance::ParentTolerance, search_type::SearchType, threshold::Threshold,
     },
     error::ValidationError,
 };
@@ -45,7 +45,7 @@ pub struct SpectrumIdentificationProtocol {
 }
 
 impl IsElement for SpectrumIdentificationProtocol {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
         if self.analysis_software_ref.is_empty() {
             return Err(ValidationError::EmptyAttribute(
                 "SpectrumIdentificationProtocol",
@@ -58,31 +58,31 @@ impl IsElement for SpectrumIdentificationProtocol {
                 "id",
             ));
         }
-        self.search_type.validate(strict)?;
+        self.search_type.validate(version, strict)?;
         if let Some(additional_search_params) = &self.additional_search_params {
-            additional_search_params.validate(strict)?;
+            additional_search_params.validate(version, strict)?;
         }
         if let Some(modification_params) = &self.modification_params {
-            modification_params.validate(strict)?;
+            modification_params.validate(version, strict)?;
         }
         if let Some(enzymes) = &self.enzymes {
-            enzymes.validate(strict)?;
+            enzymes.validate(version, strict)?;
         }
         for mass_table in &self.mass_tables {
-            mass_table.validate(strict)?;
+            mass_table.validate(version, strict)?;
         }
         if let Some(fragment_tolerance) = &self.fragment_tolerance {
-            fragment_tolerance.validate(strict)?;
+            fragment_tolerance.validate(version, strict)?;
         }
         if let Some(parent_tolerance) = &self.parent_tolerance {
-            parent_tolerance.validate(strict)?;
+            parent_tolerance.validate(version, strict)?;
         }
-        self.threashold.validate(strict)?;
+        self.threashold.validate(version, strict)?;
         if let Some(database_filters) = &self.database_filters {
-            database_filters.validate(strict)?;
+            database_filters.validate(version, strict)?;
         }
         if let Some(database_translation) = &self.database_translation {
-            database_translation.validate(strict)?;
+            database_translation.validate(version, strict)?;
         }
         Ok(())
     }

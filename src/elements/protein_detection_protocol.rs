@@ -1,7 +1,10 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    elements::{analysis_params::AnalysisParams, is_element::IsElement, threshold::Threshold},
+    elements::{
+        analysis_params::AnalysisParams, attributes::semver::SemVer, is_element::IsElement,
+        threshold::Threshold,
+    },
     error::ValidationError,
 };
 
@@ -20,7 +23,7 @@ pub struct ProteinDetectionProtocol {
 }
 
 impl IsElement for ProteinDetectionProtocol {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
         if self.analysis_software_ref.is_empty() {
             return Err(ValidationError::EmptyAttribute(
                 "ProteinDetectionProtocol",
@@ -36,9 +39,9 @@ impl IsElement for ProteinDetectionProtocol {
         }
 
         if let Some(analysis_params) = &self.analysis_params {
-            analysis_params.validate(strict)?;
+            analysis_params.validate(version, strict)?;
         }
 
-        self.threshold.validate(strict)
+        self.threshold.validate(version, strict)
     }
 }

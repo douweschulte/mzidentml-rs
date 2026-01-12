@@ -2,7 +2,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     elements::{
-        affiliation::Affiliation, cv_param::CvParam, is_element::IsElement, user_param::UserParam,
+        affiliation::Affiliation, attributes::semver::SemVer, cv_param::CvParam,
+        is_element::IsElement, user_param::UserParam,
     },
     error::ValidationError,
     has_cv_params,
@@ -29,17 +30,17 @@ pub struct Person {
 }
 
 impl IsElement for Person {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
         if self.name.is_none() && (self.first_name.is_none() || self.last_name.is_none()) {
             return Err(ValidationError::EmptyAttribute("Person", "name"));
         }
         for user_param in &self.user_params {
-            user_param.validate(strict)?;
+            user_param.validate(version, strict)?;
         }
         for affiliation in &self.affiliations {
-            affiliation.validate(strict)?;
+            affiliation.validate(version, strict)?;
         }
-        self.validate_cv_params(strict)?;
+        self.validate_cv_params(version, strict)?;
         Ok(())
     }
 }

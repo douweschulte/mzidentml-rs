@@ -1,7 +1,9 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    elements::{cv_param::CvParam, is_element::IsElement, user_param::UserParam},
+    elements::{
+        attributes::semver::SemVer, cv_param::CvParam, is_element::IsElement, user_param::UserParam,
+    },
     error::ValidationError,
     has_opt_cv_param,
 };
@@ -15,17 +17,17 @@ pub struct DatabaseName {
 }
 
 impl IsElement for DatabaseName {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
         if self.cv_param.is_some() && self.user_param.is_some() {
             return Err(ValidationError::ExclisiveAttribute(
                 "DatabaseName",
                 &["cvParam", "userParam"],
             ));
         }
-        self.validate_cv_params(strict)?;
+        self.validate_cv_params(version, strict)?;
 
         if let Some(param) = &self.user_param {
-            param.validate(strict)?;
+            param.validate(version, strict)?;
         }
 
         Ok(())

@@ -2,7 +2,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     elements::{
-        is_element::IsElement, protein_detection_protocol::ProteinDetectionProtocol,
+        attributes::semver::SemVer, is_element::IsElement,
+        protein_detection_protocol::ProteinDetectionProtocol,
         spectrum_identification_protocol::SpectrumIdentificationProtocol,
     },
     error::ValidationError,
@@ -17,12 +18,12 @@ pub struct AnalysisProtocolCollection {
 }
 
 impl IsElement for AnalysisProtocolCollection {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
         for spectrum_identification_protocol in &self.spectrum_identification_protocols {
-            spectrum_identification_protocol.validate(strict)?;
+            spectrum_identification_protocol.validate(version, strict)?;
         }
         if let Some(protein_detection_protocol) = &self.protein_detection_protocol {
-            protein_detection_protocol.validate(strict)?;
+            protein_detection_protocol.validate(version, strict)?;
         }
         Ok(())
     }

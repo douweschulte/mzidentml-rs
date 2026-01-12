@@ -1,7 +1,10 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    elements::{cv_param::CvParam, is_element::IsElement, parent::Parent, user_param::UserParam},
+    elements::{
+        attributes::semver::SemVer, cv_param::CvParam, is_element::IsElement, parent::Parent,
+        user_param::UserParam,
+    },
     error::ValidationError,
     has_cv_params,
 };
@@ -23,16 +26,16 @@ pub struct Organization {
 }
 
 impl IsElement for Organization {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
         if self.id.is_empty() {
             return Err(ValidationError::EmptyAttribute("Organization", "id"));
         }
-        self.validate_cv_params(strict)?;
+        self.validate_cv_params(version, strict)?;
         for param in &self.user_params {
-            param.validate(strict)?;
+            param.validate(version, strict)?;
         }
         if let Some(parent) = &self.parent {
-            parent.validate(strict)?;
+            parent.validate(version, strict)?;
         }
         Ok(())
     }

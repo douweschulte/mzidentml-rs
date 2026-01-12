@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    elements::{ALLOWED_SUBSTITUTION_RESIDUES, is_element::IsElement},
+    elements::{ALLOWED_SUBSTITUTION_RESIDUES, attributes::semver::SemVer, is_element::IsElement},
     error::ValidationError,
 };
 
@@ -21,7 +21,7 @@ pub struct SubstitutionModification {
 }
 
 impl IsElement for SubstitutionModification {
-    fn validate(&self, _strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, _version: &SemVer, _strict: bool) -> Result<(), ValidationError> {
         if !ALLOWED_SUBSTITUTION_RESIDUES.contains(&self.original_residue) {
             return Err(ValidationError::InvalidAttributeValue(
                 "SubstitutionModification",

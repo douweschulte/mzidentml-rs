@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     elements::{
-        cv_param::CvParam, is_element::IsElement,
+        attributes::semver::SemVer, cv_param::CvParam, is_element::IsElement,
         spectrum_identification_item::SpectrumIdentificationItem, user_param::UserParam,
     },
     error::ValidationError,
@@ -31,7 +31,7 @@ pub struct SpectrumIdentificationResult {
 }
 
 impl IsElement for SpectrumIdentificationResult {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
         if self.id.is_empty() {
             return Err(ValidationError::EmptyAttribute(
                 "SpectrumIdentificationResult",
@@ -54,13 +54,13 @@ impl IsElement for SpectrumIdentificationResult {
         }
 
         for item in &self.spectrum_identification_items {
-            item.validate(strict)?;
+            item.validate(version, strict)?;
         }
 
-        self.validate_cv_params(strict)?;
+        self.validate_cv_params(version, strict)?;
 
         for param in self.user_params.iter() {
-            param.validate(strict)?;
+            param.validate(version, strict)?;
         }
 
         Ok(())

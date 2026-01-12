@@ -5,14 +5,14 @@ use thiserror::Error;
 use crate::elements::has_cv_params::CvParamOccurence;
 
 /// Things which can got wrong working with mzIdentML files.
-#[derive(Clone, Debug, Error)]
+#[derive(Debug, Error)]
 pub enum Error {
     #[error("Error `{}` at element MzIdentML.{}", .0.inner(), .0.path().to_string().trim_start_matches('.'))]
     Deserialization(#[from] serde_path_to_error::Error<quick_xml::DeError>),
     #[error("{0}")]
     Cv(#[from] CvError),
     #[error("{0}")]
-    Validaton(#[from] ValidationError),
+    Validation(#[from] ValidationError),
 }
 
 #[derive(Clone, Debug, Error)]
@@ -37,8 +37,10 @@ pub enum ValidationError {
     ShouldOnceOrManyDuplicate(String, usize),
     #[error("{0} > {1} is required at least once")]
     ChildRequiredOnce(&'static str, &'static str),
+    #[error("{0} > {1} is required at least once")]
+    ChildRequiredAtLeastOnce(&'static str, &'static str),
     #[error("{0} > {1} is required at least once, due to {2}")]
-    ReasonedChildRequiredOnce(&'static str, &'static str, &'static str),
+    ReasonedChildRequiredAtLeastOnce(&'static str, &'static str, &'static str),
     #[error("Missing element {0}")]
     MissingElement(&'static str),
     #[error("{0}[{1}] cannot be empty")]
@@ -47,8 +49,12 @@ pub enum ValidationError {
     ExclisiveAttribute(&'static str, &'static [&'static str]),
     #[error("{0}[{1}] has invalid expected `{2}`")]
     InvalidAttributeValue(&'static str, &'static str, String),
+    #[error("Unable to parse version {0}, expected `major.minor.patch`")]
+    InvalidVersion(String),
     #[error("{0}")]
     Cv(#[from] CvError),
+    #[error("{0} > {1} is missing")]
+    MissingChild(&'static str, &'static str),
 }
 
 #[derive(Clone, Debug, Error)]

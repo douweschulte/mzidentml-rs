@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    elements::{cv_param::CvParam, is_element::IsElement},
+    elements::{attributes::semver::SemVer, cv_param::CvParam, is_element::IsElement},
     error::ValidationError,
     has_cv_param,
 };
@@ -13,8 +13,8 @@ pub struct Role {
 }
 
 impl IsElement for Role {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
-        self.validate_cv_params(strict)?;
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
+        self.validate_cv_params(version, strict)?;
         Ok(())
     }
 }

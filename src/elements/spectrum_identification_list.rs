@@ -2,8 +2,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     elements::{
-        cv_param::CvParam, fragmentation_table::FragmentationTable, is_element::IsElement,
-        spectrum_identification_result::SpectrumIdentificationResult, user_param::UserParam,
+        attributes::semver::SemVer, cv_param::CvParam, fragmentation_table::FragmentationTable,
+        is_element::IsElement, spectrum_identification_result::SpectrumIdentificationResult,
+        user_param::UserParam,
     },
     error::ValidationError,
     has_cv_params,
@@ -31,7 +32,7 @@ pub struct SpectrumIdentificationList {
 }
 
 impl IsElement for SpectrumIdentificationList {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
         if self.id.is_empty() {
             return Err(ValidationError::EmptyAttribute(
                 "SpectrumIdentificationList",
@@ -40,24 +41,24 @@ impl IsElement for SpectrumIdentificationList {
         }
 
         if self.spectrum_identification_results.is_empty() {
-            return Err(ValidationError::ChildRequiredOnce(
+            return Err(ValidationError::ChildRequiredAtLeastOnce(
                 "SpectrumIdentificationList",
                 "SpectrumIdentificationResult",
             ));
         }
 
         for spectrum_identification_result in &self.spectrum_identification_results {
-            spectrum_identification_result.validate(strict)?;
+            spectrum_identification_result.validate(version, strict)?;
         }
 
-        self.validate_cv_params(strict)?;
+        self.validate_cv_params(version, strict)?;
 
         for param in self.user_params.iter() {
-            param.validate(strict)?;
+            param.validate(version, strict)?;
         }
 
         if let Some(fragmentation_table) = &self.fragmentation_table {
-            fragmentation_table.validate(strict)?;
+            fragmentation_table.validate(version, strict)?;
         }
         Ok(())
     }

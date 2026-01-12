@@ -4,9 +4,10 @@ use crate::{
     elements::{
         analysis_collection::AnalysisCollection,
         analysis_protocol_collection::AnalysisProtocolCollection,
-        analysis_software_list::AnalysisSoftwareList, audit_collection::AuditCollection,
-        bibliographic_reference::BibliographicReference, data_collection::DataCollection,
-        provider::Provider, sequence_collection::SequenceCollection,
+        analysis_software_list::AnalysisSoftwareList, attributes::semver::SemVer,
+        audit_collection::AuditCollection, bibliographic_reference::BibliographicReference,
+        data_collection::DataCollection, provider::Provider,
+        sequence_collection::SequenceCollection,
     },
     error::ValidationError,
     has_cv_params,
@@ -33,7 +34,7 @@ pub struct MzIdentMl {
     pub name: Option<String>,
     // TODO: implmement sem ver like struckt
     #[serde(rename = "@version")]
-    pub version: String,
+    pub version: SemVer,
     #[serde(rename = "cvList")]
     pub cv_list: CvList,
     #[serde(default, rename = "cvParam")]
@@ -57,32 +58,33 @@ pub struct MzIdentMl {
 }
 
 impl IsElement for MzIdentMl {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
         for cv_list in &self.cv_list.cv {
-            cv_list.validate(strict)?;
+            cv_list.validate(version, strict)?;
         }
-        self.validate_cv_params(strict)?;
+        self.validate_cv_params(version, strict)?;
         if let Some(analysis_software_list) = &self.analysis_software_list {
-            analysis_software_list.validate(strict)?;
+            analysis_software_list.validate(version, strict)?;
         }
         if let Some(provider) = &self.provider {
-            provider.validate(strict)?;
+            provider.validate(version, strict)?;
         }
         if let Some(audit_collection) = &self.audit_collection {
-            audit_collection.validate(strict)?;
+            audit_collection.validate(version, strict)?;
         }
         if let Some(sequence_collection) = &self.sequence_collection {
-            sequence_collection.validate(strict)?;
+            sequence_collection.validate(version, strict)?;
         }
 
-        self.analysis_collection.validate(strict)?;
+        self.analysis_collection.validate(version, strict)?;
 
-        self.analysis_protocol_collection.validate(strict)?;
+        self.analysis_protocol_collection
+            .validate(version, strict)?;
 
-        self.data_collection.validate(strict)?;
+        self.data_collection.validate(version, strict)?;
 
         if let Some(bibliographic_reference) = &self.bibliographic_reference {
-            bibliographic_reference.validate(strict)?;
+            bibliographic_reference.validate(version, strict)?;
         }
 
         Ok(())

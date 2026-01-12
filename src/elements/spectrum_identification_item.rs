@@ -2,8 +2,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     elements::{
-        cv_param::CvParam, fragmentation::Fragmentation, is_element::IsElement,
-        peptide_evidence_ref::PeptideEvidenceRef, user_param::UserParam,
+        attributes::semver::SemVer, cv_param::CvParam, fragmentation::Fragmentation,
+        is_element::IsElement, peptide_evidence_ref::PeptideEvidenceRef, user_param::UserParam,
     },
     error::ValidationError,
     has_cv_params,
@@ -42,7 +42,7 @@ pub struct SpectrumIdentificationItem {
 }
 
 impl IsElement for SpectrumIdentificationItem {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
         if self.id.is_empty() {
             return Err(ValidationError::EmptyAttribute(
                 "SpectrumIdentificationItem",
@@ -57,17 +57,17 @@ impl IsElement for SpectrumIdentificationItem {
         }
 
         for evidence in &self.peptide_evidence_refs {
-            evidence.validate(strict)?;
+            evidence.validate(version, strict)?;
         }
 
         for fragmentation in self.fragmentation.iter() {
-            fragmentation.validate(strict)?;
+            fragmentation.validate(version, strict)?;
         }
 
-        self.validate_cv_params(strict)?;
+        self.validate_cv_params(version, strict)?;
 
         for param in self.user_params.iter() {
-            param.validate(strict)?;
+            param.validate(version, strict)?;
         }
 
         Ok(())

@@ -1,7 +1,9 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    elements::{cv_param::CvParam, is_element::IsElement, user_param::UserParam},
+    elements::{
+        attributes::semver::SemVer, cv_param::CvParam, is_element::IsElement, user_param::UserParam,
+    },
     error::ValidationError,
     has_cv_params,
 };
@@ -15,25 +17,25 @@ pub struct AnalysisParams {
 }
 
 impl IsElement for AnalysisParams {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
         if self.cv_params.is_empty() {
-            return Err(ValidationError::ChildRequiredOnce(
+            return Err(ValidationError::ChildRequiredAtLeastOnce(
                 "AnalysisParams",
                 "cvParam",
             ));
         }
 
-        self.validate_cv_params(strict)?;
+        self.validate_cv_params(version, strict)?;
 
         if self.user_params.is_empty() {
-            return Err(ValidationError::ChildRequiredOnce(
+            return Err(ValidationError::ChildRequiredAtLeastOnce(
                 "AnalysisParams",
                 "userParam",
             ));
         }
 
         for param in self.user_params.iter() {
-            param.validate(strict)?;
+            param.validate(version, strict)?;
         }
 
         Ok(())

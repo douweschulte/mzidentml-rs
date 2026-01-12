@@ -2,8 +2,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     elements::{
-        contact_role::ContactRole, customizations::Customizations, is_element::IsElement,
-        software_name::SoftwareName,
+        attributes::semver::SemVer, contact_role::ContactRole, customizations::Customizations,
+        is_element::IsElement, software_name::SoftwareName,
     },
     error::ValidationError,
 };
@@ -27,14 +27,14 @@ pub struct AnalysisSoftware {
 }
 
 impl IsElement for AnalysisSoftware {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
         if let Some(contact_role) = &self.contact_role {
-            contact_role.validate(strict)?;
+            contact_role.validate(version, strict)?;
         }
         if let Some(customizations) = &self.customizations {
-            customizations.validate(strict)?;
+            customizations.validate(version, strict)?;
         }
-        self.software_name.validate(strict)?;
+        self.software_name.validate(version, strict)?;
         Ok(())
     }
 }

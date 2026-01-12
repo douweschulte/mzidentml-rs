@@ -1,6 +1,7 @@
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 
+use crate::elements::attributes::semver::SemVer;
 use crate::elements::database_name::DatabaseName;
 use crate::elements::external_format_documentation::ExternalFormatDocumentation;
 use crate::elements::file_format::FileFormat;
@@ -28,7 +29,7 @@ pub struct SearchDatabase {
     #[serde(rename = "ExternalFormatDocumentation")]
     pub external_format_documentation: Option<ExternalFormatDocumentation>,
     #[serde(rename = "FileFormat")]
-    pub file_format: FileFormat,
+    pub file_format: Option<FileFormat>,
     #[serde(rename = "DatabaseName")]
     pub database_name: DatabaseName,
     #[serde(default, rename = "cvParam")]
@@ -36,7 +37,7 @@ pub struct SearchDatabase {
 }
 
 impl IsElement for SearchDatabase {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
         if self.id.is_empty() {
             return Err(ValidationError::EmptyAttribute("SearchDatabase", "id"));
         }
@@ -48,13 +49,22 @@ impl IsElement for SearchDatabase {
         }
 
         if let Some(external_format_documentation) = &self.external_format_documentation {
-            external_format_documentation.validate(strict)?;
+            external_format_documentation.validate(version, strict)?;
         }
-        self.file_format.validate(strict)?;
 
-        self.database_name.validate(strict)?;
+        if let Some(file_format) = self.file_format.as_ref() {
+            file_format.validate(version, strict)?;
+        } else if version.minor() >= 2 {
+            // File format was made mendatory in 1.2
+            return Err(ValidationError::MissingChild(
+                "SearchDatabase",
+                "FileFormat",
+            ));
+        }
 
-        self.validate_cv_params(strict)
+        self.database_name.validate(version, strict)?;
+
+        self.validate_cv_params(version, strict)
     }
 }
 

@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    elements::{ions_type::IonType, is_element::IsElement},
+    elements::{attributes::semver::SemVer, ions_type::IonType, is_element::IsElement},
     error::ValidationError,
 };
 
@@ -12,16 +12,16 @@ pub struct Fragmentation {
 }
 
 impl IsElement for Fragmentation {
-    fn validate(&self, strict: bool) -> Result<(), ValidationError> {
+    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
         if self.ion_types.is_empty() {
-            return Err(ValidationError::ChildRequiredOnce(
+            return Err(ValidationError::ChildRequiredAtLeastOnce(
                 "Fragmentation",
                 "IonType",
             ));
         }
 
         for ion_type in self.ion_types.iter() {
-            ion_type.validate(strict)?;
+            ion_type.validate(version, strict)?;
         }
 
         Ok(())
