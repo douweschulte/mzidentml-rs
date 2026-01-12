@@ -9,6 +9,7 @@ use crate::{
 pub struct ContactRole {
     #[serde(rename = "@contact_ref")]
     pub contact_ref: String,
+    #[serde(rename = "Role")]
     pub role: Role,
 }
 
