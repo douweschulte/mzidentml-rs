@@ -16,20 +16,19 @@ use super::{cv_list::CvList, cv_param::CvParam, is_element::IsElement};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct MzIdentMl {
-    #[serde(rename = "@xmlns")]
+    #[serde(default, rename = "@xmlns")]
     pub xmlns: String,
     // This is a workaround to get xsi-attributes running, see:
     // https://github.com/tafia/quick-xml/issues/553#issuecomment-1432966843
-    #[serde(rename = "@xmlns:xsi")]
-    #[serde(alias = "@xsi")]
+    #[serde(default, rename = "@xmlns:xsi", alias = "@xsi")]
     pub xmlns_xsi: String,
     // This is a workaround to get xsi-attributes running, see:
     // https://github.com/tafia/quick-xml/issues/553#issuecomment-1432966843
-    #[serde(rename = "@xsi:schemaLocation")]
-    #[serde(alias = "@schemaLocation")]
+    #[serde(default, rename = "@xsi:schemaLocation", alias = "@schemaLocation")]
     pub xsi_schema_location: String,
     #[serde(rename = "@id")]
     pub id: String,
+
     #[serde(rename = "@name")]
     pub name: Option<String>,
     // TODO: implmement sem ver like struckt
