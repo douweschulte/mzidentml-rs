@@ -26,28 +26,42 @@ pub struct SpectraData {
 }
 
 impl IsElement for SpectraData {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "SpectraData";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if self.id.is_empty() {
-            return Err(ValidationError::EmptyAttribute("SpectraData", "id"));
+            return Err(ValidationError::EmptyAttribute(
+                Self::element_path_to_string(element_path),
+                "id",
+            ));
         }
         if self.location.is_empty() {
-            return Err(ValidationError::EmptyAttribute("SpectraData", "location"));
+            return Err(ValidationError::EmptyAttribute(
+                Self::element_path_to_string(element_path),
+                "location",
+            ));
         }
 
         if let Some(external_format_documentation) = &self.external_format_documentation {
-            external_format_documentation.validate(version, strict)?;
+            external_format_documentation.validate(version, strict, element_path, None)?;
         }
 
         if let Some(file_format) = self.file_format.as_ref() {
-            file_format.validate(version, strict)?;
+            file_format.validate(version, strict, element_path, None)?;
         } else if version.minor() >= 2 {
             // File format was made mendatory in 1.2
             return Err(ValidationError::MissingChild(
-                "SearchDatabase",
+                Self::element_path_to_string(element_path),
                 "FileFormat",
             ));
         }
 
-        self.spectrum_id_format.validate(version, strict)
+        self.spectrum_id_format
+            .validate(version, strict, element_path, None)
     }
 }

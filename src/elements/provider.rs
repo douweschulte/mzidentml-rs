@@ -18,9 +18,16 @@ pub struct Provider {
 }
 
 impl IsElement for Provider {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "Provider";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if let Some(contact_role) = &self.contact_role {
-            contact_role.validate(version, strict)?;
+            contact_role.validate(version, strict, element_path, None)?;
         }
         Ok(())
     }

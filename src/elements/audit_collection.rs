@@ -17,19 +17,26 @@ pub struct AuditCollection {
 }
 
 impl IsElement for AuditCollection {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "AuditCollection";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         // Since version 1.3 person and organization is allowed once or multiple times, before each was only allowed once.
         if version.minor() > 2 {
             if self.persons.is_empty() {
                 return Err(ValidationError::ChildRequiredAtLeastOnce(
-                    "AuditCollection",
+                    Self::element_path_to_string(element_path),
                     "Person",
                 ));
             }
 
             if self.organizations.is_empty() {
                 return Err(ValidationError::ChildRequiredAtLeastOnce(
-                    "AuditCollection",
+                    Self::element_path_to_string(element_path),
                     "Organization",
                 ));
             }
@@ -49,13 +56,7 @@ impl IsElement for AuditCollection {
             }
         }
 
-        for person in &self.persons {
-            person.validate(version, strict)?;
-        }
-
-        for organization in &self.organizations {
-            organization.validate(version, strict)?;
-        }
-        Ok(())
+        Self::validate_elements(version, strict, element_path, self.persons.iter())?;
+        Self::validate_elements(version, strict, element_path, self.organizations.iter())
     }
 }

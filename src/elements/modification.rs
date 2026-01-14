@@ -26,9 +26,15 @@ pub struct Modification {
 }
 
 impl IsElement for Modification {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
-        self.validate_cv_params(version, strict)?;
-        Ok(())
+    const ELEMENT_TAG: &str = "Modification";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
+        self.validate_cv_params(version, strict, element_path)
     }
 }
 

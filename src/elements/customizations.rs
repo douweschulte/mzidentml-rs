@@ -9,7 +9,14 @@ use crate::{
 pub struct Customizations(String);
 
 impl IsElement for Customizations {
-    fn validate(&self, _version: &SemVer, _strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "Customizations";
+
+    fn inner_validate(
+        &self,
+        _version: &SemVer,
+        _strict: bool,
+        _element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         Ok(())
     }
 }

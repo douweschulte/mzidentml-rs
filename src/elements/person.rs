@@ -30,18 +30,23 @@ pub struct Person {
 }
 
 impl IsElement for Person {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "Person";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if self.name.is_none() && (self.first_name.is_none() || self.last_name.is_none()) {
-            return Err(ValidationError::EmptyAttribute("Person", "name"));
+            return Err(ValidationError::EmptyAttribute(
+                Self::element_path_to_string(element_path),
+                "name",
+            ));
         }
-        for user_param in &self.user_params {
-            user_param.validate(version, strict)?;
-        }
-        for affiliation in &self.affiliations {
-            affiliation.validate(version, strict)?;
-        }
-        self.validate_cv_params(version, strict)?;
-        Ok(())
+        Self::validate_elements(version, strict, element_path, self.user_params.iter())?;
+        Self::validate_elements(version, strict, element_path, self.affiliations.iter())?;
+        self.validate_cv_params(version, strict, element_path)
     }
 }
 

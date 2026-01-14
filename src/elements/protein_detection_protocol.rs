@@ -23,25 +23,30 @@ pub struct ProteinDetectionProtocol {
 }
 
 impl IsElement for ProteinDetectionProtocol {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "ProteinDetectionProtocol";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if self.analysis_software_ref.is_empty() {
             return Err(ValidationError::EmptyAttribute(
-                "ProteinDetectionProtocol",
+                Self::element_path_to_string(element_path),
                 "analysisSoftware_ref",
             ));
         }
 
         if self.id.is_empty() {
             return Err(ValidationError::EmptyAttribute(
-                "ProteinDetectionProtocol",
+                Self::element_path_to_string(element_path),
                 "id",
             ));
         }
 
-        if let Some(analysis_params) = &self.analysis_params {
-            analysis_params.validate(version, strict)?;
-        }
+        Self::validate_elements(version, strict, element_path, self.analysis_params.iter())?;
 
-        self.threshold.validate(version, strict)
+        self.threshold.validate(version, strict, element_path, None)
     }
 }

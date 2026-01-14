@@ -35,10 +35,17 @@ pub struct BibliographicReference {
 }
 
 impl IsElement for BibliographicReference {
-    fn validate(&self, _version: &SemVer, _strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "BibliographicReference";
+
+    fn inner_validate(
+        &self,
+        _version: &SemVer,
+        _strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if self.id.is_empty() {
             return Err(ValidationError::EmptyAttribute(
-                "BibliographicReference",
+                Self::element_path_to_string(element_path),
                 "id",
             ));
         }

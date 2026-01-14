@@ -26,33 +26,46 @@ pub struct ProteinDetection {
 }
 
 impl IsElement for ProteinDetection {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "ProteinDetection";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if self.id.is_empty() {
-            return Err(ValidationError::EmptyAttribute("ProteinDetection", "id"));
+            return Err(ValidationError::EmptyAttribute(
+                Self::element_path_to_string(element_path),
+                "id",
+            ));
         }
         if self.protein_detection_list_ref.is_empty() {
             return Err(ValidationError::EmptyAttribute(
-                "ProteinDetection",
+                Self::element_path_to_string(element_path),
                 "proteinDetectionList_ref",
             ));
         }
         if self.protein_detection_protocol_ref.is_empty() {
             return Err(ValidationError::EmptyAttribute(
-                "ProteinDetection",
+                Self::element_path_to_string(element_path),
                 "proteinDetectionProtocol_ref",
             ));
         }
 
         if self.input_spectrum_identifications.is_empty() {
             return Err(ValidationError::ChildRequiredAtLeastOnce(
-                "ProteinDetection",
+                Self::element_path_to_string(element_path),
                 "InputSpectrumIdentifications",
             ));
         }
 
-        for input_spec_id in self.input_spectrum_identifications.iter() {
-            input_spec_id.validate(version, strict)?;
-        }
+        Self::validate_elements(
+            version,
+            strict,
+            element_path,
+            self.input_spectrum_identifications.iter(),
+        )?;
         Ok(())
     }
 }

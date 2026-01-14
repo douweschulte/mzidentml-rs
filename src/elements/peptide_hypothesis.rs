@@ -18,24 +18,33 @@ pub struct PeptideHypothesis {
 }
 
 impl IsElement for PeptideHypothesis {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "PeptideHypothesis";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if self.peptide_evidence_ref.is_empty() {
             return Err(ValidationError::EmptyAttribute(
-                "PeptideHypothesi",
+                Self::element_path_to_string(element_path),
                 "peptideEvidence_ref",
             ));
         }
 
         if self.spectrum_identification_item_refs.is_empty() {
             return Err(ValidationError::ChildRequiredAtLeastOnce(
-                "PeptideHypothesis",
+                Self::element_path_to_string(element_path),
                 "SpectrumIdentificationItemRef",
             ));
         }
 
-        for spectrum_identification_item_ref in &self.spectrum_identification_item_refs {
-            spectrum_identification_item_ref.validate(version, strict)?;
-        }
-        Ok(())
+        Self::validate_elements(
+            version,
+            strict,
+            element_path,
+            self.spectrum_identification_item_refs.iter(),
+        )
     }
 }

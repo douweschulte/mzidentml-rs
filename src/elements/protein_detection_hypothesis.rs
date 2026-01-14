@@ -30,38 +30,44 @@ pub struct ProteinDetectionHypothesis {
 }
 
 impl IsElement for ProteinDetectionHypothesis {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "ProteinDetectionHypothesis";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if self.db_sequence_ref.is_empty() {
             return Err(ValidationError::EmptyAttribute(
-                "ProteinDetectionHypothesis",
+                Self::element_path_to_string(element_path),
                 "dbSequence_ref",
             ));
         }
         if self.id.is_empty() {
             return Err(ValidationError::EmptyAttribute(
-                "ProteinDetectionHypothesis",
+                Self::element_path_to_string(element_path),
                 "id",
             ));
         }
 
         if self.peptide_hypotheses.is_empty() {
             return Err(ValidationError::ChildRequiredAtLeastOnce(
-                "ProteinDetectionHypothesis",
+                Self::element_path_to_string(element_path),
                 "PeptideHypothesis",
             ));
         }
 
-        for peptide_hypothesis in &self.peptide_hypotheses {
-            peptide_hypothesis.validate(version, strict)?;
-        }
+        Self::validate_elements(
+            version,
+            strict,
+            element_path,
+            self.peptide_hypotheses.iter(),
+        )?;
 
-        self.validate_cv_params(version, strict)?;
+        self.validate_cv_params(version, strict, element_path)?;
 
-        for param in self.user_params.iter() {
-            param.validate(version, strict)?;
-        }
-
-        Ok(())
+        Self::validate_elements(version, strict, element_path, self.user_params.iter())
     }
 }
 

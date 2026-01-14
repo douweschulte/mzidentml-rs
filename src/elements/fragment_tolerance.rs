@@ -14,16 +14,22 @@ pub struct FragmentTolerance {
 }
 
 impl IsElement for FragmentTolerance {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "FragmentTolerance";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if self.cv_params.is_empty() {
             return Err(ValidationError::ChildRequiredAtLeastOnce(
-                "FragmentTolerance",
+                Self::element_path_to_string(element_path),
                 "cvParam",
             ));
         }
 
-        self.validate_cv_params(version, strict)?;
-        Ok(())
+        self.validate_cv_params(version, strict, element_path)
     }
 }
 

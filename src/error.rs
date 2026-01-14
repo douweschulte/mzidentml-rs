@@ -26,15 +26,15 @@ pub enum ValidationError {
     #[error("{0} > {1} is required at least once")]
     ChildRequiredOnce(&'static str, &'static str),
     #[error("{0} > {1} is required at least once")]
-    ChildRequiredAtLeastOnce(&'static str, &'static str),
+    ChildRequiredAtLeastOnce(String, &'static str),
     #[error("{0} > {1} is required at least once, due to {2}")]
-    ReasonedChildRequiredAtLeastOnce(&'static str, &'static str, &'static str),
+    ReasonedChildRequiredAtLeastOnce(String, &'static str, &'static str),
     #[error("Missing element {0}")]
     MissingElement(&'static str),
     #[error("{0}[{1}] cannot be empty")]
-    EmptyAttribute(&'static str, &'static str),
+    EmptyAttribute(String, &'static str),
     #[error("{0} > ({1:?}) is allowed at a time")]
-    ExclisiveAttribute(&'static str, &'static [&'static str]),
+    ExclisiveAttribute(String, &'static [&'static str]),
     #[error("{0}[{1}] has invalid expected `{2}`")]
     InvalidAttributeValue(&'static str, &'static str, String),
     #[error("Unable to parse version {0}, expected `major.minor.patch`")]
@@ -42,29 +42,29 @@ pub enum ValidationError {
     #[error("{0}")]
     Cv(#[from] CvError),
     #[error("{0} > {1} is missing")]
-    MissingChild(&'static str, &'static str),
+    MissingChild(String, &'static str),
 }
 
 /// Error for violated CvParam rules
 #[derive(Clone, Debug, Error)]
 pub enum CvParamsValidationError {
-    RuleViolation(&'static CvParamRule, Option<Vec<String>>),
-    Duplication(String, usize),
+    RuleViolation(String, &'static CvParamRule, Option<Vec<String>>),
+    Duplication(String, String, usize),
 }
 
 impl Display for CvParamsValidationError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            CvParamsValidationError::RuleViolation(rule, matching_accessions) => {
+            CvParamsValidationError::RuleViolation(element_path, rule, matching_accessions) => {
                 let found = if let Some(matching_accessions) = matching_accessions {
                     matching_accessions.join(", ")
                 } else {
                     "none".to_string()
                 };
-                write!(f, "Violated rule: `{rule}`. Found {found}.")
+                write!(f, "{element_path}: Violated rule `{rule}`. Found {found}.")
             }
-            CvParamsValidationError::Duplication(cv_name, term_id) => {
-                write!(f, "Found duplicate for {cv_name}:{term_id}")
+            CvParamsValidationError::Duplication(element_path, cv_name, term_id) => {
+                write!(f, "{element_path}: Found duplicate for {cv_name}:{term_id}")
             }
         }
     }

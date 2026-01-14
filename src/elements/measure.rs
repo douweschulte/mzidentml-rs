@@ -16,18 +16,29 @@ pub struct Measure {
 }
 
 impl IsElement for Measure {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "Measure";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if self.id.is_empty() {
-            return Err(ValidationError::EmptyAttribute("Measure", "id"));
+            return Err(ValidationError::EmptyAttribute(
+                Self::element_path_to_string(element_path),
+                "id",
+            ));
         }
 
         if self.cv_params.is_empty() {
             return Err(ValidationError::ChildRequiredAtLeastOnce(
-                "Measure", "cvParam",
+                Self::element_path_to_string(element_path),
+                "cvParam",
             ));
         }
 
-        self.validate_cv_params(version, strict)
+        self.validate_cv_params(version, strict, element_path)
     }
 }
 

@@ -7,7 +7,7 @@ use mzcv::CVData;
 use crate::controlled_vocabularies::{CvDataWithChildren, MS_CVINDEX, UNIMOD_CVINDEX};
 use crate::elements::attributes::semver::SemVer;
 use crate::elements::cv_param::CvParam;
-use crate::elements::is_element::IsElement;
+use crate::elements::is_element::{IsElement, element_path_to_string};
 use crate::error::{CvError, CvParamsValidationError, ValidationError};
 
 /// Enum representing the number of times a term is allowed to be used in the cvParams of an element.
@@ -97,9 +97,13 @@ impl CvParamRule {
 
     /// Checks if the cvParam (or child) exists once
     ///
+    /// * `cv_params` - Iterator over cvParams to validate
+    /// * `element_path` - Path to the current element in the document tree with the current element at the end.
+    ///
     fn validate_must_once<'a, I>(
         &'static self,
         cv_params: I,
+        element_path: &[String],
     ) -> Result<Vec<&'a CvParam>, ValidationError>
     where
         I: Iterator<Item = &'a CvParam>,
@@ -107,9 +111,15 @@ impl CvParamRule {
         let matching_cv_params = self.collect_matching_cv_params(cv_params)?;
 
         if matching_cv_params.is_empty() {
-            return Err(CvParamsValidationError::RuleViolation(self, None).into());
+            return Err(CvParamsValidationError::RuleViolation(
+                element_path_to_string(element_path),
+                self,
+                None,
+            )
+            .into());
         } else if matching_cv_params.len() > 1 {
             return Err(CvParamsValidationError::RuleViolation(
+                element_path_to_string(element_path),
                 self,
                 Some(
                     matching_cv_params
@@ -126,9 +136,13 @@ impl CvParamRule {
 
     /// Checks if the cvParam (or child) exists at least once and without any duplicates
     ///
+    /// * `cv_params` - Iterator over cvParams to validate
+    /// * `element_path` - Path to the current element in the document tree with the current element at the end.
+    ///
     fn validate_must_once_or_many<'a, I>(
         &'static self,
         cv_params: I,
+        element_path: &[String],
     ) -> Result<Vec<&'a CvParam>, ValidationError>
     where
         I: Iterator<Item = &'a CvParam>,
@@ -136,7 +150,12 @@ impl CvParamRule {
         let matching_cv_params = self.collect_matching_cv_params(cv_params)?;
 
         if matching_cv_params.is_empty() {
-            return Err(CvParamsValidationError::RuleViolation(self, None).into());
+            return Err(CvParamsValidationError::RuleViolation(
+                element_path_to_string(element_path),
+                self,
+                None,
+            )
+            .into());
         }
 
         // Check for duplicates
@@ -144,6 +163,7 @@ impl CvParamRule {
         for param in matching_cv_params.iter() {
             if visited_ids.contains(&param.accession.1) {
                 return Err(CvParamsValidationError::Duplication(
+                    element_path_to_string(element_path),
                     param.accession.0.clone(),
                     param.accession.1,
                 )
@@ -158,9 +178,13 @@ impl CvParamRule {
 
     /// Checks if the cvParam (or child) exists only once or not at all.
     ///
+    /// * `cv_params` - Iterator over cvParams to validate
+    /// * `element_path` - Path to the current element in the document tree with the current element at the end.
+    ///
     fn validate_may_once<'a, I>(
         &'static self,
         cv_params: I,
+        element_path: &[String],
     ) -> Result<Vec<&'a CvParam>, ValidationError>
     where
         I: Iterator<Item = &'a CvParam>,
@@ -169,6 +193,7 @@ impl CvParamRule {
 
         if matching_cv_params.len() > 1 {
             return Err(CvParamsValidationError::RuleViolation(
+                element_path_to_string(element_path),
                 self,
                 Some(
                     matching_cv_params
@@ -185,9 +210,13 @@ impl CvParamRule {
 
     /// Checks if the cvParam (or child) exists without duplicates
     ///
+    /// * `cv_params` - Iterator over cvParams to validate
+    /// * `element_path` - Path to the current element in the document tree with the current element at the end.
+    ///
     fn validate_may_once_or_many<'a, I>(
         &'static self,
         cv_params: I,
+        element_path: &[String],
     ) -> Result<Vec<&'a CvParam>, ValidationError>
     where
         I: Iterator<Item = &'a CvParam>,
@@ -199,39 +228,7 @@ impl CvParamRule {
         for param in matching_cv_params.iter() {
             if visited_ids.contains(&param.accession.1) {
                 return Err(CvParamsValidationError::Duplication(
-                    param.accession.0.clone(),
-                    param.accession.1,
-                )
-                .into());
-            } else {
-                visited_ids.insert(param.accession.1);
-            }
-        }
-
-        Ok(matching_cv_params)
-    }
-
-    /// Checks if the cvParam (or child) exists at least once and without any duplicates
-    ///
-    // TODO: This is exactly the same as validate_many_once_or_many except the thrown errors. Can it be merged?
-    fn validate_should_once_or_many<'a, I>(
-        &'static self,
-        cv_params: I,
-    ) -> Result<Vec<&'a CvParam>, ValidationError>
-    where
-        I: Iterator<Item = &'a CvParam>,
-    {
-        let matching_cv_params = self.collect_matching_cv_params(cv_params)?;
-
-        if matching_cv_params.is_empty() {
-            return Err(CvParamsValidationError::RuleViolation(self, None).into());
-        }
-
-        // Check for duplicates
-        let mut visited_ids: HashSet<usize> = HashSet::with_capacity(matching_cv_params.len());
-        for param in matching_cv_params.iter() {
-            if visited_ids.contains(&param.accession.1) {
-                return Err(CvParamsValidationError::Duplication(
+                    element_path_to_string(element_path),
                     param.accession.0.clone(),
                     param.accession.1,
                 )
@@ -249,23 +246,29 @@ impl CvParamRule {
     /// # Arguments:
     /// * `cv_params` - Iterator over cvParams to validate
     /// * `strict` - Missing SHOULD returns error
+    /// * `element_path` - Path to the current element in the document tree with the current element at the end.
     ///
     pub fn validate<'a, I>(
         &'static self,
         cv_params: I,
         strict: bool,
+        element_path: &[String],
     ) -> Result<Vec<&'a CvParam>, ValidationError>
     where
         I: Iterator<Item = &'a CvParam>,
     {
         match self.occurence {
-            CvParamOccurence::MustOnce => self.validate_must_once(cv_params),
-            CvParamOccurence::MustOnceOrMany => self.validate_must_once_or_many(cv_params),
-            CvParamOccurence::MayOnce => self.validate_may_once(cv_params),
-            CvParamOccurence::MayOnceOrMany => self.validate_may_once_or_many(cv_params),
+            CvParamOccurence::MustOnce => self.validate_must_once(cv_params, element_path),
+            CvParamOccurence::MustOnceOrMany => {
+                self.validate_must_once_or_many(cv_params, element_path)
+            }
+            CvParamOccurence::MayOnce => self.validate_may_once(cv_params, element_path),
+            CvParamOccurence::MayOnceOrMany => {
+                self.validate_may_once_or_many(cv_params, element_path)
+            }
             CvParamOccurence::ShouldOnceOrMany => {
                 if strict {
-                    self.validate_should_once_or_many(cv_params)
+                    self.validate_may_once_or_many(cv_params, element_path)
                 } else {
                     Ok(vec![])
                 }
@@ -313,7 +316,7 @@ impl Display for CvParamRule {
 
 /// Trait to deal with validation of cvParams
 ///
-pub trait HasCvParams {
+pub trait HasCvParams: IsElement {
     /// CV rules applying to a Element
     ///
     const CV_PARAM_RULES: &[CvParamRule];
@@ -351,12 +354,17 @@ pub trait HasCvParams {
     /// # Arguments
     /// * `strict` - If true, missing SHOULD terms will return an error
     ///
-    fn validate_cv_params(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
-        for param in self.cv_params() {
-            param.validate(version, strict)?;
+    fn validate_cv_params(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
+        for (param_idx, param) in self.cv_params().enumerate() {
+            param.validate(version, strict, element_path, Some(param_idx))?;
         }
         for rule in Self::cv_param_rules() {
-            rule.validate(self.cv_params(), strict)?;
+            rule.validate(self.cv_params(), strict, element_path)?;
         }
         Ok(())
     }

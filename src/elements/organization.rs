@@ -26,16 +26,25 @@ pub struct Organization {
 }
 
 impl IsElement for Organization {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "Organization";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if self.id.is_empty() {
-            return Err(ValidationError::EmptyAttribute("Organization", "id"));
+            return Err(ValidationError::EmptyAttribute(
+                Self::element_path_to_string(element_path),
+                "id",
+            ));
         }
-        self.validate_cv_params(version, strict)?;
-        for param in &self.user_params {
-            param.validate(version, strict)?;
-        }
+        self.validate_cv_params(version, strict, element_path)?;
+        Self::validate_elements(version, strict, element_path, self.user_params.iter())?;
+
         if let Some(parent) = &self.parent {
-            parent.validate(version, strict)?;
+            parent.validate(version, strict, element_path, None)?;
         }
         Ok(())
     }

@@ -57,34 +57,49 @@ pub struct MzIdentMl {
     pub bibliographic_reference: Option<BibliographicReference>,
 }
 
+impl MzIdentMl {
+    pub fn validate_document(&self, strict: bool) -> Result<(), ValidationError> {
+        let mut elements_path: Vec<String> = Vec::with_capacity(10); // TODO: Lookup actual mzIdentML depth
+        self.validate(&self.version, strict, &mut elements_path, None)
+    }
+}
+
 impl IsElement for MzIdentMl {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
-        for cv_list in &self.cv_list.cv {
-            cv_list.validate(version, strict)?;
-        }
-        self.validate_cv_params(version, strict)?;
+    const ELEMENT_TAG: &str = "MzIdentMl";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
+        self.cv_list.validate(version, strict, element_path, None)?;
+
+        self.validate_cv_params(version, strict, element_path)?;
         if let Some(analysis_software_list) = &self.analysis_software_list {
-            analysis_software_list.validate(version, strict)?;
+            analysis_software_list.validate(version, strict, element_path, None)?;
         }
         if let Some(provider) = &self.provider {
-            provider.validate(version, strict)?;
+            provider.validate(version, strict, element_path, None)?;
         }
         if let Some(audit_collection) = &self.audit_collection {
-            audit_collection.validate(version, strict)?;
+            audit_collection.validate(version, strict, element_path, None)?;
         }
         if let Some(sequence_collection) = &self.sequence_collection {
-            sequence_collection.validate(version, strict)?;
+            sequence_collection.validate(version, strict, element_path, None)?;
         }
 
-        self.analysis_collection.validate(version, strict)?;
+        self.analysis_collection
+            .validate(version, strict, element_path, None)?;
 
         self.analysis_protocol_collection
-            .validate(version, strict)?;
+            .validate(version, strict, element_path, None)?;
 
-        self.data_collection.validate(version, strict)?;
+        self.data_collection
+            .validate(version, strict, element_path, None)?;
 
         if let Some(bibliographic_reference) = &self.bibliographic_reference {
-            bibliographic_reference.validate(version, strict)?;
+            bibliographic_reference.validate(version, strict, element_path, None)?;
         }
 
         Ok(())

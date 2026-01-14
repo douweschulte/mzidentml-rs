@@ -14,18 +14,26 @@ pub struct ModificationParams {
 }
 
 impl IsElement for ModificationParams {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "ModificationParams";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if self.search_modifications.is_empty() {
             return Err(ValidationError::ChildRequiredAtLeastOnce(
-                "ModificationParams",
+                Self::element_path_to_string(element_path),
                 "SearchModification",
             ));
         }
 
-        for search_mod in &self.search_modifications {
-            search_mod.validate(version, strict)?;
-        }
-
-        Ok(())
+        Self::validate_elements(
+            version,
+            strict,
+            element_path,
+            self.search_modifications.iter(),
+        )
     }
 }

@@ -17,17 +17,33 @@ pub struct Cv {
 }
 
 impl IsElement for Cv {
-    fn validate(&self, _version: &SemVer, _strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "cv";
+
+    fn inner_validate(
+        &self,
+        _version: &SemVer,
+        _strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if self.id.is_empty() {
-            return Err(ValidationError::EmptyAttribute("CV", "id]"));
+            return Err(ValidationError::EmptyAttribute(
+                Self::element_path_to_string(element_path),
+                "id]",
+            ));
         }
 
         if self.full_name.is_empty() {
-            return Err(ValidationError::EmptyAttribute("CV", "full_name"));
+            return Err(ValidationError::EmptyAttribute(
+                Self::element_path_to_string(element_path),
+                "full_name",
+            ));
         }
 
         if self.uri.is_empty() {
-            return Err(ValidationError::EmptyAttribute("CV", "uri"));
+            return Err(ValidationError::EmptyAttribute(
+                Self::element_path_to_string(element_path),
+                "uri",
+            ));
         }
 
         Ok(())

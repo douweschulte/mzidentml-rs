@@ -17,10 +17,19 @@ pub struct DatabaseTranslation {
 }
 
 impl IsElement for DatabaseTranslation {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
-        for table in &self.translation_tables {
-            table.validate(version, strict)?;
-        }
-        Ok(())
+    const ELEMENT_TAG: &str = "DatabaseTranslation";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
+        Self::validate_elements(
+            version,
+            strict,
+            element_path,
+            self.translation_tables.iter(),
+        )
     }
 }

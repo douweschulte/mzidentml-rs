@@ -15,10 +15,17 @@ pub struct FragmentArray {
 }
 
 impl IsElement for FragmentArray {
-    fn validate(&self, _version: &SemVer, _strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "FragmentArray";
+
+    fn inner_validate(
+        &self,
+        _version: &SemVer,
+        _strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if self.measure_ref.is_empty() {
             return Err(ValidationError::EmptyAttribute(
-                "FragmentArray",
+                Self::element_path_to_string(element_path),
                 "measure_ref",
             ));
         }

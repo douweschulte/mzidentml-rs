@@ -23,24 +23,26 @@ pub struct IonType {
 }
 
 impl IsElement for IonType {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
-        for array in self.fragment_arrays.iter() {
-            array.validate(version, strict)?;
-        }
+    const ELEMENT_TAG: &str = "IonType";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
+        Self::validate_elements(version, strict, element_path, self.fragment_arrays.iter())?;
 
         if self.cv_params.is_empty() {
             return Err(ValidationError::ChildRequiredAtLeastOnce(
-                "IonType", "cvParam",
+                Self::element_path_to_string(element_path),
+                "cvParam",
             ));
         }
 
-        self.validate_cv_params(version, strict)?;
+        self.validate_cv_params(version, strict, element_path)?;
 
-        for param in self.user_params.iter() {
-            param.validate(version, strict)?;
-        }
-
-        Ok(())
+        Self::validate_elements(version, strict, element_path, self.user_params.iter())
     }
 }
 

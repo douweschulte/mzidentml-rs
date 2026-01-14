@@ -12,10 +12,17 @@ pub struct SpectrumIdentificationItemRef {
 }
 
 impl IsElement for SpectrumIdentificationItemRef {
-    fn validate(&self, _version: &SemVer, _strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "SpectrumIdentificationItemRef";
+
+    fn inner_validate(
+        &self,
+        _version: &SemVer,
+        _strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if self.spectrum_identification_item_ref.is_empty() {
             return Err(ValidationError::EmptyAttribute(
-                "SpectrumIdentificationItemRef",
+                Self::element_path_to_string(element_path),
                 "spectrumIdentificationItem_ref",
             ));
         }

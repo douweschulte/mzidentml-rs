@@ -12,18 +12,21 @@ pub struct FragmentationTable {
 }
 
 impl IsElement for FragmentationTable {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "FragmentationTable";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if self.measures.is_empty() {
             return Err(ValidationError::ChildRequiredAtLeastOnce(
-                "FragmentationTable",
+                Self::element_path_to_string(element_path),
                 "Measure",
             ));
         }
 
-        for measure in &self.measures {
-            measure.validate(version, strict)?;
-        }
-
-        Ok(())
+        Self::validate_elements(version, strict, element_path, self.measures.iter())
     }
 }

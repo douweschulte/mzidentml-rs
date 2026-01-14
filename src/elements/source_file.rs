@@ -31,32 +31,44 @@ pub struct SourceFile {
 }
 
 impl IsElement for SourceFile {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "SourceFile";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if self.id.is_empty() {
-            return Err(ValidationError::EmptyAttribute("SourceFile", "id"));
+            return Err(ValidationError::EmptyAttribute(
+                Self::element_path_to_string(element_path),
+                "id",
+            ));
         }
         if self.location.is_empty() {
-            return Err(ValidationError::EmptyAttribute("SourceFile", "location"));
+            return Err(ValidationError::EmptyAttribute(
+                Self::element_path_to_string(element_path),
+                "location",
+            ));
         }
 
         if let Some(external_format_documentation) = &self.external_format_documentation {
-            external_format_documentation.validate(version, strict)?;
+            external_format_documentation.validate(version, strict, element_path, None)?;
         }
 
         if let Some(file_format) = self.file_format.as_ref() {
-            file_format.validate(version, strict)?;
+            file_format.validate(version, strict, element_path, None)?;
         } else if version.minor() >= 2 {
             // File format is introduced in this element in version 1.2
-            return Err(ValidationError::MissingChild("SourceFile", "FileFormat"));
+            return Err(ValidationError::MissingChild(
+                Self::element_path_to_string(element_path),
+                "FileFormat",
+            ));
         }
 
-        self.validate_cv_params(version, strict)?;
+        self.validate_cv_params(version, strict, element_path)?;
 
-        for param in self.user_params.iter() {
-            param.validate(version, strict)?;
-        }
-
-        Ok(())
+        Self::validate_elements(version, strict, element_path, self.user_params.iter())
     }
 }
 

@@ -24,12 +24,25 @@ pub struct CvParam {
 }
 
 impl IsElement for CvParam {
-    fn validate(&self, _version: &SemVer, _strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "cvParam";
+
+    fn inner_validate(
+        &self,
+        _version: &SemVer,
+        _strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if self.cv_ref.is_empty() {
-            return Err(ValidationError::EmptyAttribute("cvParam", "cvRef"));
+            return Err(ValidationError::EmptyAttribute(
+                Self::element_path_to_string(element_path),
+                "cvRef",
+            ));
         }
         if self.name.is_empty() {
-            return Err(ValidationError::EmptyAttribute("cvParam", "name"));
+            return Err(ValidationError::EmptyAttribute(
+                Self::element_path_to_string(element_path),
+                "name",
+            ));
         }
 
         Ok(())

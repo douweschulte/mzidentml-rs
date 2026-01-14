@@ -17,26 +17,31 @@ pub struct AnalysisParams {
 }
 
 impl IsElement for AnalysisParams {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "AnalysisParams";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if self.cv_params.is_empty() {
             return Err(ValidationError::ChildRequiredAtLeastOnce(
-                "AnalysisParams",
+                Self::element_path_to_string(element_path),
                 "cvParam",
             ));
         }
 
-        self.validate_cv_params(version, strict)?;
+        self.validate_cv_params(version, strict, element_path)?;
 
         if self.user_params.is_empty() {
             return Err(ValidationError::ChildRequiredAtLeastOnce(
-                "AnalysisParams",
+                Self::element_path_to_string(element_path),
                 "userParam",
             ));
         }
 
-        for param in self.user_params.iter() {
-            param.validate(version, strict)?;
-        }
+        Self::validate_elements(version, strict, element_path, self.user_params.iter())?;
 
         Ok(())
     }

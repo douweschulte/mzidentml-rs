@@ -45,44 +45,53 @@ pub struct SpectrumIdentificationProtocol {
 }
 
 impl IsElement for SpectrumIdentificationProtocol {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "SpectrumIdentificationProtocol";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if self.analysis_software_ref.is_empty() {
             return Err(ValidationError::EmptyAttribute(
-                "SpectrumIdentificationProtocol",
+                Self::element_path_to_string(element_path),
                 "analysisSoftware_ref",
             ));
         }
         if self.id.is_empty() {
             return Err(ValidationError::EmptyAttribute(
-                "SpectrumIdentificationProtocol",
+                Self::element_path_to_string(element_path),
                 "id",
             ));
         }
-        self.search_type.validate(version, strict)?;
+        self.search_type
+            .validate(version, strict, element_path, None)?;
         if let Some(additional_search_params) = &self.additional_search_params {
-            additional_search_params.validate(version, strict)?;
+            additional_search_params.validate(version, strict, element_path, None)?;
         }
         if let Some(modification_params) = &self.modification_params {
-            modification_params.validate(version, strict)?;
+            modification_params.validate(version, strict, element_path, None)?;
         }
         if let Some(enzymes) = &self.enzymes {
-            enzymes.validate(version, strict)?;
+            enzymes.validate(version, strict, element_path, None)?;
         }
         for mass_table in &self.mass_tables {
-            mass_table.validate(version, strict)?;
+            mass_table.validate(version, strict, element_path, None)?;
         }
         if let Some(fragment_tolerance) = &self.fragment_tolerance {
-            fragment_tolerance.validate(version, strict)?;
+            fragment_tolerance.validate(version, strict, element_path, None)?;
         }
         if let Some(parent_tolerance) = &self.parent_tolerance {
-            parent_tolerance.validate(version, strict)?;
+            parent_tolerance.validate(version, strict, element_path, None)?;
         }
-        self.threashold.validate(version, strict)?;
+        self.threashold
+            .validate(version, strict, element_path, None)?;
         if let Some(database_filters) = &self.database_filters {
-            database_filters.validate(version, strict)?;
+            database_filters.validate(version, strict, element_path, None)?;
         }
         if let Some(database_translation) = &self.database_translation {
-            database_translation.validate(version, strict)?;
+            database_translation.validate(version, strict, element_path, None)?;
         }
         Ok(())
     }

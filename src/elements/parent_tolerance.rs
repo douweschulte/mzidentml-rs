@@ -14,16 +14,22 @@ pub struct ParentTolerance {
 }
 
 impl IsElement for ParentTolerance {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "ParentTolerance";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if self.cv_params.is_empty() {
             return Err(ValidationError::ChildRequiredAtLeastOnce(
-                "ParentTolerance",
+                Self::element_path_to_string(element_path),
                 "cvParam",
             ));
         }
 
-        self.validate_cv_params(version, strict)?;
-        Ok(())
+        self.validate_cv_params(version, strict, element_path)
     }
 }
 

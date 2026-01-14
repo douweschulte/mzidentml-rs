@@ -31,17 +31,27 @@ pub struct Enzyme {
 }
 
 impl IsElement for Enzyme {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "Enzyme";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if self.id.is_empty() {
-            return Err(ValidationError::EmptyAttribute("Enzyme", "id"));
+            return Err(ValidationError::EmptyAttribute(
+                Self::element_path_to_string(element_path),
+                "id",
+            ));
         }
 
         if let Some(site_regexp) = &self.site_regexp {
-            site_regexp.validate(version, strict)?;
+            site_regexp.validate(version, strict, element_path, None)?;
         }
 
         if let Some(enzyme_name) = &self.enzyme_name {
-            enzyme_name.validate(version, strict)?;
+            enzyme_name.validate(version, strict, element_path, None)?;
         }
 
         Ok(())

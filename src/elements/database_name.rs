@@ -17,17 +17,24 @@ pub struct DatabaseName {
 }
 
 impl IsElement for DatabaseName {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "DatabaseName";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if self.cv_param.is_some() && self.user_param.is_some() {
             return Err(ValidationError::ExclisiveAttribute(
-                "DatabaseName",
+                Self::element_path_to_string(element_path),
                 &["cvParam", "userParam"],
             ));
         }
-        self.validate_cv_params(version, strict)?;
+        self.validate_cv_params(version, strict, element_path)?;
 
         if let Some(param) = &self.user_param {
-            param.validate(version, strict)?;
+            param.validate(version, strict, element_path, None)?;
         }
 
         Ok(())

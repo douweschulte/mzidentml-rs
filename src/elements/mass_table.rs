@@ -28,18 +28,24 @@ pub struct MassTable {
 }
 
 impl IsElement for MassTable {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "MassTable";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if self.id.is_empty() {
-            return Err(ValidationError::EmptyAttribute("MassTable", "id"));
+            return Err(ValidationError::EmptyAttribute(
+                Self::element_path_to_string(element_path),
+                "id",
+            ));
         }
 
-        self.validate_cv_params(version, strict)?;
+        self.validate_cv_params(version, strict, element_path)?;
 
-        for param in &self.user_params {
-            param.validate(version, strict)?;
-        }
-
-        Ok(())
+        Self::validate_elements(version, strict, element_path, self.user_params.iter())
     }
 }
 

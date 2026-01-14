@@ -32,33 +32,41 @@ pub struct SpectrumIdentificationList {
 }
 
 impl IsElement for SpectrumIdentificationList {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "SpectrumIdentificationList";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if self.id.is_empty() {
             return Err(ValidationError::EmptyAttribute(
-                "SpectrumIdentificationList",
+                Self::element_path_to_string(element_path),
                 "id",
             ));
         }
 
         if self.spectrum_identification_results.is_empty() {
             return Err(ValidationError::ChildRequiredAtLeastOnce(
-                "SpectrumIdentificationList",
+                Self::element_path_to_string(element_path),
                 "SpectrumIdentificationResult",
             ));
         }
 
-        for spectrum_identification_result in &self.spectrum_identification_results {
-            spectrum_identification_result.validate(version, strict)?;
-        }
+        Self::validate_elements(
+            version,
+            strict,
+            element_path,
+            self.spectrum_identification_results.iter(),
+        )?;
 
-        self.validate_cv_params(version, strict)?;
+        self.validate_cv_params(version, strict, element_path)?;
 
-        for param in self.user_params.iter() {
-            param.validate(version, strict)?;
-        }
+        Self::validate_elements(version, strict, element_path, self.user_params.iter())?;
 
         if let Some(fragmentation_table) = &self.fragmentation_table {
-            fragmentation_table.validate(version, strict)?;
+            fragmentation_table.validate(version, strict, element_path, None)?;
         }
         Ok(())
     }

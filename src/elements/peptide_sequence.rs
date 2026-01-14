@@ -8,7 +8,14 @@ use super::is_element::IsElement;
 pub struct PeptideSequence(String);
 
 impl IsElement for PeptideSequence {
-    fn validate(&self, _version: &SemVer, _strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "PeptideSequence";
+
+    fn inner_validate(
+        &self,
+        _version: &SemVer,
+        _strict: bool,
+        _element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         Ok(())
     }
 }

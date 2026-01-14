@@ -19,16 +19,16 @@ pub struct SequenceCollection {
 }
 
 impl IsElement for SequenceCollection {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
-        for db_sequence in &self.db_sequences {
-            db_sequence.validate(version, strict)?;
-        }
-        for peptide in &self.peptides {
-            peptide.validate(version, strict)?;
-        }
-        for peptide_evidence in &self.peptide_evidence {
-            peptide_evidence.validate(version, strict)?;
-        }
-        Ok(())
+    const ELEMENT_TAG: &str = "SequenceCollection";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
+        Self::validate_elements(version, strict, element_path, self.db_sequences.iter())?;
+        Self::validate_elements(version, strict, element_path, self.peptides.iter())?;
+        Self::validate_elements(version, strict, element_path, self.peptide_evidence.iter())
     }
 }

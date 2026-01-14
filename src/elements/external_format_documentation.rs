@@ -9,7 +9,14 @@ use crate::{
 pub struct ExternalFormatDocumentation(String);
 
 impl IsElement for ExternalFormatDocumentation {
-    fn validate(&self, _version: &SemVer, _strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "ExternalFormatDocumentation";
+
+    fn inner_validate(
+        &self,
+        _version: &SemVer,
+        _strict: bool,
+        _elements_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         Ok(())
     }
 }

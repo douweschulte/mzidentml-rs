@@ -18,20 +18,30 @@ pub struct AnalysisData {
 }
 
 impl IsElement for AnalysisData {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "AnalysisData";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if self.spectrum_identification_lists.is_empty() {
             return Err(ValidationError::ChildRequiredAtLeastOnce(
-                "AnalysisData",
+                Self::element_path_to_string(element_path),
                 "SpectrumIdentificationList",
             ));
         }
 
-        for spectrum_identification_list in &self.spectrum_identification_lists {
-            spectrum_identification_list.validate(version, strict)?;
-        }
+        Self::validate_elements(
+            version,
+            strict,
+            element_path,
+            self.spectrum_identification_lists.iter(),
+        )?;
 
         if let Some(protein_detection_list) = &self.protein_detection_list {
-            protein_detection_list.validate(version, strict)?;
+            protein_detection_list.validate(version, strict, element_path, None)?;
         }
 
         Ok(())

@@ -18,12 +18,22 @@ pub struct AnalysisProtocolCollection {
 }
 
 impl IsElement for AnalysisProtocolCollection {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
-        for spectrum_identification_protocol in &self.spectrum_identification_protocols {
-            spectrum_identification_protocol.validate(version, strict)?;
-        }
+    const ELEMENT_TAG: &str = "AnalysisProtocolCollection";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
+        Self::validate_elements(
+            version,
+            strict,
+            element_path,
+            self.spectrum_identification_protocols.iter(),
+        )?;
         if let Some(protein_detection_protocol) = &self.protein_detection_protocol {
-            protein_detection_protocol.validate(version, strict)?;
+            protein_detection_protocol.validate(version, strict, element_path, None)?;
         }
         Ok(())
     }

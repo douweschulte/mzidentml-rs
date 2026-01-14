@@ -15,16 +15,22 @@ pub struct Enzymes {
 }
 
 impl IsElement for Enzymes {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "Enzymes";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if self.enzyme.is_empty() {
             return Err(ValidationError::ChildRequiredAtLeastOnce(
-                "Enzymes", "Enzyme",
+                Self::element_path_to_string(element_path),
+                "Enzyme",
             ));
         }
 
-        for enz in &self.enzyme {
-            enz.validate(version, strict)?;
-        }
+        Self::validate_elements(version, strict, element_path, self.enzyme.iter())?;
         Ok(())
     }
 }

@@ -27,14 +27,22 @@ pub struct AnalysisSoftware {
 }
 
 impl IsElement for AnalysisSoftware {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "AnalysisSoftware";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if let Some(contact_role) = &self.contact_role {
-            contact_role.validate(version, strict)?;
+            contact_role.validate(version, strict, element_path, None)?;
         }
         if let Some(customizations) = &self.customizations {
-            customizations.validate(version, strict)?;
+            customizations.validate(version, strict, element_path, None)?;
         }
-        self.software_name.validate(version, strict)?;
+        self.software_name
+            .validate(version, strict, element_path, None)?;
         Ok(())
     }
 }

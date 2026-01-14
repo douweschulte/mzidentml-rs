@@ -31,39 +31,45 @@ pub struct SpectrumIdentificationResult {
 }
 
 impl IsElement for SpectrumIdentificationResult {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "SpectrumIdentificationResult";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if self.id.is_empty() {
             return Err(ValidationError::EmptyAttribute(
-                "SpectrumIdentificationResult",
+                Self::element_path_to_string(element_path),
                 "id",
             ));
         }
 
         if self.spectra_data_ref.is_empty() {
             return Err(ValidationError::EmptyAttribute(
-                "SpectrumIdentificationResult",
+                Self::element_path_to_string(element_path),
                 "spectraData_ref",
             ));
         }
 
         if self.spectrum_identification_items.is_empty() {
             return Err(ValidationError::EmptyAttribute(
-                "SpectrumIdentificationResult",
+                Self::element_path_to_string(element_path),
                 "SpectrumIdentificationItem",
             ));
         }
 
-        for item in &self.spectrum_identification_items {
-            item.validate(version, strict)?;
-        }
+        Self::validate_elements(
+            version,
+            strict,
+            element_path,
+            self.spectrum_identification_items.iter(),
+        )?;
 
-        self.validate_cv_params(version, strict)?;
+        self.validate_cv_params(version, strict, element_path)?;
 
-        for param in self.user_params.iter() {
-            param.validate(version, strict)?;
-        }
-
-        Ok(())
+        Self::validate_elements(version, strict, element_path, self.user_params.iter())
     }
 }
 

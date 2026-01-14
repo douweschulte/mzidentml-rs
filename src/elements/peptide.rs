@@ -19,9 +19,9 @@ pub struct Peptide {
     #[serde(rename = "PeptideSequence")]
     pub peptide_sequence: PeptideSequence,
     #[serde(default, rename = "Modification")]
-    pub modification: Vec<Modification>,
+    pub modifications: Vec<Modification>,
     #[serde(default, rename = "SubstitutionModification")]
-    pub substitution_modification: Vec<SubstitutionModification>,
+    pub substitution_modifications: Vec<SubstitutionModification>,
     #[serde(default, rename = "cvParam")]
     pub cv_params: Vec<CvParam>,
     #[serde(default, rename = "userParam")]
@@ -29,27 +29,35 @@ pub struct Peptide {
 }
 
 impl IsElement for Peptide {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "Peptide";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if self.id.is_empty() {
-            return Err(ValidationError::EmptyAttribute("Peptide", "id"));
+            return Err(ValidationError::EmptyAttribute(
+                Self::element_path_to_string(element_path),
+                "id",
+            ));
         }
 
-        self.peptide_sequence.validate(version, strict)?;
+        self.peptide_sequence
+            .validate(version, strict, element_path, None)?;
 
-        for modification in self.modification.iter() {
-            modification.validate(version, strict)?;
-        }
+        Self::validate_elements(version, strict, element_path, self.modifications.iter())?;
 
-        for modification in self.substitution_modification.iter() {
-            modification.validate(version, strict)?;
-        }
+        Self::validate_elements(
+            version,
+            strict,
+            element_path,
+            self.substitution_modifications.iter(),
+        )?;
 
-        self.validate_cv_params(version, strict)?;
-        for user_param in &self.user_params {
-            user_param.validate(version, strict)?;
-        }
-
-        Ok(())
+        self.validate_cv_params(version, strict, element_path)?;
+        Self::validate_elements(version, strict, element_path, self.user_params.iter())
     }
 }
 

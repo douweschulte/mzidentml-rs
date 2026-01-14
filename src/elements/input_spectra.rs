@@ -12,10 +12,17 @@ pub struct InputSpectra {
 }
 
 impl IsElement for InputSpectra {
-    fn validate(&self, _version: &SemVer, _strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "InputSpectra";
+
+    fn inner_validate(
+        &self,
+        _version: &SemVer,
+        _strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if self.spectra_data_ref.is_empty() {
             return Err(ValidationError::EmptyAttribute(
-                "InputSpectra",
+                Self::element_path_to_string(element_path),
                 "spectraData_ref",
             ));
         }

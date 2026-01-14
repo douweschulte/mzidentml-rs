@@ -17,8 +17,16 @@ pub struct DataCollection {
 }
 
 impl IsElement for DataCollection {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
-        self.inputs.validate(version, strict)?;
-        self.analysis_data.validate(version, strict)
+    const ELEMENT_TAG: &str = "DataCollection";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
+        self.inputs.validate(version, strict, element_path, None)?;
+        self.analysis_data
+            .validate(version, strict, element_path, None)
     }
 }

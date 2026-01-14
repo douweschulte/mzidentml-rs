@@ -12,10 +12,17 @@ pub struct SearchDatabaseRef {
 }
 
 impl IsElement for SearchDatabaseRef {
-    fn validate(&self, _version: &SemVer, _strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "SearchDatabaseRef";
+
+    fn inner_validate(
+        &self,
+        _version: &SemVer,
+        _strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if self.search_database_ref.is_empty() {
             return Err(ValidationError::EmptyAttribute(
-                "SearchDatabaseRef",
+                Self::element_path_to_string(element_path),
                 "spectraData_ref",
             ));
         }

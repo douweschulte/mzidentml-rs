@@ -21,7 +21,14 @@ pub struct SubstitutionModification {
 }
 
 impl IsElement for SubstitutionModification {
-    fn validate(&self, _version: &SemVer, _strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "SubstitutionModification";
+
+    fn inner_validate(
+        &self,
+        _version: &SemVer,
+        _strict: bool,
+        _element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if !ALLOWED_SUBSTITUTION_RESIDUES.contains(&self.original_residue) {
             return Err(ValidationError::InvalidAttributeValue(
                 "SubstitutionModification",

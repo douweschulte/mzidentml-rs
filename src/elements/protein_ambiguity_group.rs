@@ -26,32 +26,38 @@ pub struct ProteinAmbiguityGroup {
 }
 
 impl IsElement for ProteinAmbiguityGroup {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "ProteinAmbiguityGroup";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if self.id.is_empty() {
             return Err(ValidationError::EmptyAttribute(
-                "ProteinAmbiguityGroup",
+                Self::element_path_to_string(element_path),
                 "id",
             ));
         }
 
         if self.protein_detection_hypotheses.is_empty() {
             return Err(ValidationError::ChildRequiredAtLeastOnce(
-                "ProteinAmbiguityGroup",
+                Self::element_path_to_string(element_path),
                 "ProteinDetectionHypothesis",
             ));
         }
 
-        for protein_detection_hypothesis in &self.protein_detection_hypotheses {
-            protein_detection_hypothesis.validate(version, strict)?;
-        }
+        Self::validate_elements(
+            version,
+            strict,
+            element_path,
+            self.protein_detection_hypotheses.iter(),
+        )?;
 
-        self.validate_cv_params(version, strict)?;
+        self.validate_cv_params(version, strict, element_path)?;
 
-        for param in self.user_params.iter() {
-            param.validate(version, strict)?;
-        }
-
-        Ok(())
+        Self::validate_elements(version, strict, element_path, self.user_params.iter())
     }
 }
 

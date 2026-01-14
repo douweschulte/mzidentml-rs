@@ -11,10 +11,15 @@ pub struct CvList {
 }
 
 impl IsElement for CvList {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
-        for cv in &self.cv {
-            cv.validate(version, strict)?;
-        }
+    const ELEMENT_TAG: &str = "cvList";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
+        Self::validate_elements(version, strict, element_path, self.cv.iter())?;
         Ok(())
     }
 }

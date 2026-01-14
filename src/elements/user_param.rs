@@ -22,9 +22,19 @@ pub struct UserParam {
 }
 
 impl IsElement for UserParam {
-    fn validate(&self, _version: &SemVer, _strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "UserParam";
+
+    fn inner_validate(
+        &self,
+        _version: &SemVer,
+        _strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if self.name.is_empty() {
-            return Err(ValidationError::EmptyAttribute("UserParam", "name"));
+            return Err(ValidationError::EmptyAttribute(
+                Self::element_path_to_string(element_path),
+                "name",
+            ));
         }
         Ok(())
     }

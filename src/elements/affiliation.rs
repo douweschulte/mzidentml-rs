@@ -12,10 +12,17 @@ pub struct Affiliation {
 }
 
 impl IsElement for Affiliation {
-    fn validate(&self, _version: &SemVer, _strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "Affiliation";
+
+    fn inner_validate(
+        &self,
+        _version: &SemVer,
+        _strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if self.organization_ref.is_empty() {
             return Err(ValidationError::EmptyAttribute(
-                "Affiliation",
+                Self::element_path_to_string(element_path),
                 "organization_ref",
             ));
         }

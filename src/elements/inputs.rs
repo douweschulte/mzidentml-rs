@@ -19,23 +19,24 @@ pub struct Inputs {
 }
 
 impl IsElement for Inputs {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
-        for source_file in &self.source_files {
-            source_file.validate(version, strict)?;
-        }
-        for search_database in &self.search_databases {
-            search_database.validate(version, strict)?;
-        }
+    const ELEMENT_TAG: &str = "Inputs";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
+        Self::validate_elements(version, strict, element_path, self.source_files.iter())?;
+        Self::validate_elements(version, strict, element_path, self.search_databases.iter())?;
 
         if self.spectra_data.is_empty() {
             return Err(ValidationError::ChildRequiredAtLeastOnce(
-                "Inputs",
+                Self::element_path_to_string(element_path),
                 "SpectraData",
             ));
         }
-        for spectra_data in &self.spectra_data {
-            spectra_data.validate(version, strict)?;
-        }
-        Ok(())
+
+        Self::validate_elements(version, strict, element_path, self.spectra_data.iter())
     }
 }

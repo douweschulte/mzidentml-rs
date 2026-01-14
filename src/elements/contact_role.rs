@@ -14,8 +14,15 @@ pub struct ContactRole {
 }
 
 impl IsElement for ContactRole {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
-        self.role.validate(version, strict)?;
+    const ELEMENT_TAG: &str = "ContactRole";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
+        self.role.validate(version, strict, element_path, None)?;
         Ok(())
     }
 }

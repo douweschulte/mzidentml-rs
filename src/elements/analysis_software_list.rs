@@ -14,17 +14,21 @@ pub struct AnalysisSoftwareList {
 }
 
 impl IsElement for AnalysisSoftwareList {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "AnalysisSoftwareList";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if self.analysis_software.is_empty() {
             return Err(ValidationError::ChildRequiredAtLeastOnce(
-                "AnalysisSoftwareList",
+                Self::element_path_to_string(element_path),
                 "AnalysisSoftware",
             ));
         }
-
-        for software in &self.analysis_software {
-            software.validate(version, strict)?;
-        }
+        Self::validate_elements(version, strict, element_path, self.analysis_software.iter())?;
         Ok(())
     }
 }

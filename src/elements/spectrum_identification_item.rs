@@ -42,35 +42,38 @@ pub struct SpectrumIdentificationItem {
 }
 
 impl IsElement for SpectrumIdentificationItem {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "SpectrumIdentificationItem";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if self.id.is_empty() {
             return Err(ValidationError::EmptyAttribute(
-                "SpectrumIdentificationItem",
+                Self::element_path_to_string(element_path),
                 "id",
             ));
         }
         if self.peptide_ref.is_empty() {
             return Err(ValidationError::EmptyAttribute(
-                "SpectrumIdentificationItem",
+                Self::element_path_to_string(element_path),
                 "peptide_ref",
             ));
         }
 
-        for evidence in &self.peptide_evidence_refs {
-            evidence.validate(version, strict)?;
-        }
+        Self::validate_elements(
+            version,
+            strict,
+            element_path,
+            self.peptide_evidence_refs.iter(),
+        )?;
+        Self::validate_elements(version, strict, element_path, self.fragmentation.iter())?;
 
-        for fragmentation in self.fragmentation.iter() {
-            fragmentation.validate(version, strict)?;
-        }
+        self.validate_cv_params(version, strict, element_path)?;
 
-        self.validate_cv_params(version, strict)?;
-
-        for param in self.user_params.iter() {
-            param.validate(version, strict)?;
-        }
-
-        Ok(())
+        Self::validate_elements(version, strict, element_path, self.user_params.iter())
     }
 }
 

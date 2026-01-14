@@ -32,28 +32,41 @@ pub struct DbSequence {
 }
 
 impl IsElement for DbSequence {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
+    const ELEMENT_TAG: &str = "DbSequence";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
         if self.accession.is_empty() {
-            return Err(ValidationError::EmptyAttribute("DbSequence", "accession"));
+            return Err(ValidationError::EmptyAttribute(
+                Self::element_path_to_string(element_path),
+                "accession",
+            ));
         }
 
         if self.id.is_empty() {
-            return Err(ValidationError::EmptyAttribute("DbSequence", "id"));
+            return Err(ValidationError::EmptyAttribute(
+                Self::element_path_to_string(element_path),
+                "id",
+            ));
         }
 
         if self.search_database_ref.is_empty() {
             return Err(ValidationError::EmptyAttribute(
-                "DbSequence",
+                Self::element_path_to_string(element_path),
                 "searchDatabase_ref",
             ));
         }
 
-        self.validate_cv_params(version, strict)?;
+        self.validate_cv_params(version, strict, element_path)?;
 
-        for user_param in &self.user_params {
-            user_param.validate(version, strict)?;
-        }
-        self.sequence.validate(version, strict)?;
+        Self::validate_elements(version, strict, element_path, self.user_params.iter())?;
+
+        self.sequence
+            .validate(version, strict, element_path, None)?;
 
         Ok(())
     }

@@ -19,15 +19,23 @@ pub struct Filter {
 }
 
 impl IsElement for Filter {
-    fn validate(&self, version: &SemVer, strict: bool) -> Result<(), ValidationError> {
-        self.filter_type.validate(version, strict)?;
+    const ELEMENT_TAG: &str = "Filter";
+
+    fn inner_validate(
+        &self,
+        version: &SemVer,
+        strict: bool,
+        element_path: &mut Vec<String>,
+    ) -> Result<(), ValidationError> {
+        self.filter_type
+            .validate(version, strict, element_path, None)?;
 
         if let Some(include) = &self.include {
-            include.validate(version, strict)?;
+            include.validate(version, strict, element_path, None)?;
         }
 
         if let Some(exclude) = &self.exclude {
-            exclude.validate(version, strict)?;
+            exclude.validate(version, strict, element_path, None)?;
         }
 
         Ok(())
