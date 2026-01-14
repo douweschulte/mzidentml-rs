@@ -1,8 +1,8 @@
-use std::sync::Arc;
+use std::{fmt::Display, sync::Arc};
 
 use thiserror::Error;
 
-use crate::elements::has_cv_params::CvParamOccurence;
+use crate::elements::has_cv_params::{CvParamOccurence, CvParamRule};
 
 /// Things which can got wrong working with mzIdentML files.
 #[derive(Debug, Error)]
@@ -13,28 +13,16 @@ pub enum Error {
     Cv(#[from] CvError),
     #[error("{0}")]
     Validation(#[from] ValidationError),
+    #[error("{0}")]
+    Indexing(#[from] IndexingError),
 }
 
 #[derive(Clone, Debug, Error)]
 pub enum ValidationError {
     #[error("Wrong cvParam rule, got {0} expected {1}")]
     WrongCvParamOccurence(CvParamOccurence, CvParamOccurence),
-    #[error("One child of `{0}:{1}` must be present.")]
-    MustOnceMissing(&'static str, usize),
-    #[error("Only one child of `{0}` can be present. Found multiple: `{1:?}`")]
-    MustOnceExceeded(&'static str, usize, Vec<String>),
-    #[error("At least one child of `{0}:{1}` must be present.")]
-    MustOnceOrManyMissing(&'static str, usize),
-    #[error("Found duplicate for {0}:{1}")]
-    MustOnceOrManyDuplicate(String, usize),
-    #[error("Only zero or one child of `{0}:{1}` can be present")]
-    MayOnceExceeded(&'static str, usize),
-    #[error("Found duplicate for {0}:{1}")]
-    MayOnceOrManyDuplicate(String, usize),
-    #[error("At least one child of `{0}:{1}` should be present.")]
-    ShouldOnceOrManyMissing(&'static str, usize),
-    #[error("Found duplicate for {0}:{1}")]
-    ShouldOnceOrManyDuplicate(String, usize),
+    #[error("{0}")]
+    CvParamViolation(#[from] CvParamsValidationError),
     #[error("{0} > {1} is required at least once")]
     ChildRequiredOnce(&'static str, &'static str),
     #[error("{0} > {1} is required at least once")]
@@ -55,6 +43,31 @@ pub enum ValidationError {
     Cv(#[from] CvError),
     #[error("{0} > {1} is missing")]
     MissingChild(&'static str, &'static str),
+}
+
+/// Error for violated CvParam rules
+#[derive(Clone, Debug, Error)]
+pub enum CvParamsValidationError {
+    RuleViolation(&'static CvParamRule, Option<Vec<String>>),
+    Duplication(String, usize),
+}
+
+impl Display for CvParamsValidationError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CvParamsValidationError::RuleViolation(rule, matching_accessions) => {
+                let found = if let Some(matching_accessions) = matching_accessions {
+                    matching_accessions.join(", ")
+                } else {
+                    "none".to_string()
+                };
+                write!(f, "Violated rule: `{rule}`. Found {found}.")
+            }
+            CvParamsValidationError::Duplication(cv_name, term_id) => {
+                write!(f, "Found duplicate for {cv_name}:{term_id}")
+            }
+        }
+    }
 }
 
 #[derive(Clone, Debug, Error)]

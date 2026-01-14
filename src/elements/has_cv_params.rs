@@ -8,7 +8,7 @@ use crate::controlled_vocabularies::{CvDataWithChildren, MS_CVINDEX, UNIMOD_CVIN
 use crate::elements::attributes::semver::SemVer;
 use crate::elements::cv_param::CvParam;
 use crate::elements::is_element::IsElement;
-use crate::error::{CvError, ValidationError};
+use crate::error::{CvError, CvParamsValidationError, ValidationError};
 
 /// Enum representing the number of times a term is allowed to be used in the cvParams of an element.
 #[derive(Clone, Debug, PartialEq)]
@@ -32,6 +32,7 @@ impl Display for CvParamOccurence {
     }
 }
 
+#[derive(Debug)]
 pub struct CvParamRule {
     /// CV name, e.g. UNIMOD, MS, .., Check [crate::controlled_vocabularies] for known CVs
     pub cv_name: &'static str,
@@ -69,7 +70,7 @@ impl CvParamRule {
     /// Collect cvParams matching the term in the rule.
     ///
     fn collect_matching_cv_params<'a, I>(
-        &self,
+        &'static self,
         cv_params: I,
     ) -> Result<Vec<&'a CvParam>, ValidationError>
     where
@@ -96,32 +97,8 @@ impl CvParamRule {
 
     /// Checks if the cvParam (or child) exists once
     ///
-    fn validate_must_once<'a, I>(&self, cv_params: I) -> Result<Vec<&'a CvParam>, ValidationError>
-    where
-        I: Iterator<Item = &'a CvParam>,
-    {
-        let matching_cv_params = self.collect_matching_cv_params(cv_params)?;
-
-        if matching_cv_params.is_empty() {
-            return Err(ValidationError::MustOnceMissing(self.cv_name, self.id));
-        } else if matching_cv_params.len() > 1 {
-            return Err(ValidationError::MustOnceExceeded(
-                self.cv_name,
-                self.id,
-                matching_cv_params
-                    .iter()
-                    .map(|param| format!("{}:{}", param.accession.0, param.accession.1))
-                    .collect(),
-            ));
-        }
-
-        Ok(matching_cv_params)
-    }
-
-    /// Checks if the cvParam (or child) exists at least once and without any duplicates
-    ///
-    fn validate_must_once_or_many<'a, I>(
-        &self,
+    fn validate_must_once<'a, I>(
+        &'static self,
         cv_params: I,
     ) -> Result<Vec<&'a CvParam>, ValidationError>
     where
@@ -130,20 +107,47 @@ impl CvParamRule {
         let matching_cv_params = self.collect_matching_cv_params(cv_params)?;
 
         if matching_cv_params.is_empty() {
-            return Err(ValidationError::MustOnceOrManyMissing(
-                self.cv_name,
-                self.id,
-            ));
+            return Err(CvParamsValidationError::RuleViolation(self, None).into());
+        } else if matching_cv_params.len() > 1 {
+            return Err(CvParamsValidationError::RuleViolation(
+                self,
+                Some(
+                    matching_cv_params
+                        .iter()
+                        .map(|param| format!("{}:{}", param.accession.0, param.accession.1))
+                        .collect(),
+                ),
+            )
+            .into());
+        }
+
+        Ok(matching_cv_params)
+    }
+
+    /// Checks if the cvParam (or child) exists at least once and without any duplicates
+    ///
+    fn validate_must_once_or_many<'a, I>(
+        &'static self,
+        cv_params: I,
+    ) -> Result<Vec<&'a CvParam>, ValidationError>
+    where
+        I: Iterator<Item = &'a CvParam>,
+    {
+        let matching_cv_params = self.collect_matching_cv_params(cv_params)?;
+
+        if matching_cv_params.is_empty() {
+            return Err(CvParamsValidationError::RuleViolation(self, None).into());
         }
 
         // Check for duplicates
         let mut visited_ids: HashSet<usize> = HashSet::with_capacity(matching_cv_params.len());
         for param in matching_cv_params.iter() {
             if visited_ids.contains(&param.accession.1) {
-                return Err(ValidationError::MustOnceOrManyDuplicate(
+                return Err(CvParamsValidationError::Duplication(
                     param.accession.0.clone(),
                     param.accession.1,
-                ));
+                )
+                .into());
             } else {
                 visited_ids.insert(param.accession.1);
             }
@@ -154,14 +158,26 @@ impl CvParamRule {
 
     /// Checks if the cvParam (or child) exists only once or not at all.
     ///
-    fn validate_may_once<'a, I>(&self, cv_params: I) -> Result<Vec<&'a CvParam>, ValidationError>
+    fn validate_may_once<'a, I>(
+        &'static self,
+        cv_params: I,
+    ) -> Result<Vec<&'a CvParam>, ValidationError>
     where
         I: Iterator<Item = &'a CvParam>,
     {
         let matching_cv_params = self.collect_matching_cv_params(cv_params)?;
 
         if matching_cv_params.len() > 1 {
-            return Err(ValidationError::MayOnceExceeded(self.cv_name, self.id));
+            return Err(CvParamsValidationError::RuleViolation(
+                self,
+                Some(
+                    matching_cv_params
+                        .iter()
+                        .map(|param| format!("{}:{}", param.accession.0, param.accession.1))
+                        .collect(),
+                ),
+            )
+            .into());
         }
 
         Ok(matching_cv_params)
@@ -170,7 +186,7 @@ impl CvParamRule {
     /// Checks if the cvParam (or child) exists without duplicates
     ///
     fn validate_may_once_or_many<'a, I>(
-        &self,
+        &'static self,
         cv_params: I,
     ) -> Result<Vec<&'a CvParam>, ValidationError>
     where
@@ -182,10 +198,11 @@ impl CvParamRule {
         let mut visited_ids: HashSet<usize> = HashSet::with_capacity(matching_cv_params.len());
         for param in matching_cv_params.iter() {
             if visited_ids.contains(&param.accession.1) {
-                return Err(ValidationError::MayOnceOrManyDuplicate(
+                return Err(CvParamsValidationError::Duplication(
                     param.accession.0.clone(),
                     param.accession.1,
-                ));
+                )
+                .into());
             } else {
                 visited_ids.insert(param.accession.1);
             }
@@ -198,7 +215,7 @@ impl CvParamRule {
     ///
     // TODO: This is exactly the same as validate_many_once_or_many except the thrown errors. Can it be merged?
     fn validate_should_once_or_many<'a, I>(
-        &self,
+        &'static self,
         cv_params: I,
     ) -> Result<Vec<&'a CvParam>, ValidationError>
     where
@@ -207,20 +224,18 @@ impl CvParamRule {
         let matching_cv_params = self.collect_matching_cv_params(cv_params)?;
 
         if matching_cv_params.is_empty() {
-            return Err(ValidationError::ShouldOnceOrManyMissing(
-                self.cv_name,
-                self.id,
-            ));
+            return Err(CvParamsValidationError::RuleViolation(self, None).into());
         }
 
         // Check for duplicates
         let mut visited_ids: HashSet<usize> = HashSet::with_capacity(matching_cv_params.len());
         for param in matching_cv_params.iter() {
             if visited_ids.contains(&param.accession.1) {
-                return Err(ValidationError::ShouldOnceOrManyDuplicate(
+                return Err(CvParamsValidationError::Duplication(
                     param.accession.0.clone(),
                     param.accession.1,
-                ));
+                )
+                .into());
             } else {
                 visited_ids.insert(param.accession.1);
             }
@@ -236,7 +251,7 @@ impl CvParamRule {
     /// * `strict` - Missing SHOULD returns error
     ///
     pub fn validate<'a, I>(
-        &self,
+        &'static self,
         cv_params: I,
         strict: bool,
     ) -> Result<Vec<&'a CvParam>, ValidationError>
@@ -255,6 +270,43 @@ impl CvParamRule {
                     Ok(vec![])
                 }
             }
+        }
+    }
+}
+
+impl Display for CvParamRule {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let child = if self.supplies_children {
+            "Child of "
+        } else {
+            ""
+        };
+        match self.occurence {
+            CvParamOccurence::MustOnce => write!(
+                f,
+                "{child}{}:{} must be supplied once.",
+                self.cv_name, self.id
+            ),
+            CvParamOccurence::MustOnceOrMany => write!(
+                f,
+                "{child}{}:{} must be supplied at least once.",
+                self.cv_name, self.id
+            ),
+            CvParamOccurence::MayOnce => write!(
+                f,
+                "{child}{}:{} can be supplied only once.",
+                self.cv_name, self.id
+            ),
+            CvParamOccurence::MayOnceOrMany => write!(
+                f,
+                "{child}{}:{} can be supplied once or many times.",
+                self.cv_name, self.id
+            ),
+            CvParamOccurence::ShouldOnceOrMany => write!(
+                f,
+                "{child}{}:{} should be supplied once or many times.",
+                self.cv_name, self.id
+            ),
         }
     }
 }
