@@ -113,6 +113,8 @@ pub mod space_separated_vec_parsing {
     }
 }
 
+/// Parses optional space separated vectors from and to string.
+/// An empty string will be parsed to None.
 // TODO: Possible to merge with space_separated_vec_parsing?
 pub mod opt_space_separated_vec_parsing {
     use std::str::FromStr;
@@ -149,7 +151,7 @@ pub mod opt_space_separated_vec_parsing {
     {
         let items_str: Option<String> = Deserialize::deserialize(deserializer)?;
 
-        if items_str.is_none() {
+        if items_str.is_none() || items_str.as_ref().unwrap().is_empty() {
             return Ok(None);
         }
 
