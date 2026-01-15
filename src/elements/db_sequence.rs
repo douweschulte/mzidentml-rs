@@ -24,7 +24,7 @@ pub struct DbSequence {
     pub name: Option<String>,
 
     #[serde(rename = "Seq")]
-    pub sequence: Seq,
+    pub sequence: Option<Seq>,
     #[serde(default, rename = "cvParam")]
     pub cv_params: Vec<CvParam>,
     #[serde(default, rename = "userParam")]
@@ -65,8 +65,9 @@ impl IsElement for DbSequence {
 
         Self::validate_elements(version, strict, element_path, self.user_params.iter())?;
 
-        self.sequence
-            .validate(version, strict, element_path, None)?;
+        if let Some(seq) = &self.sequence {
+            seq.validate(version, strict, element_path, None)?;
+        }
 
         Ok(())
     }
