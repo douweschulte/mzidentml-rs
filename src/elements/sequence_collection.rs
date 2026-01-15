@@ -1,4 +1,4 @@
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 
 use crate::{
     elements::{
@@ -7,6 +7,12 @@ use crate::{
     },
     error::ValidationError,
 };
+
+pub trait IsSequenceCollection:
+    IsElement + Clone + std::fmt::Debug + Serialize + DeserializeOwned
+{
+    const SEQEUNCE_COLLECTION_ELEMENT_TAG: &str = "SequenceCollection";
+}
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SequenceCollection {
@@ -18,8 +24,10 @@ pub struct SequenceCollection {
     pub peptide_evidence: Vec<PeptideEvidence>,
 }
 
+impl IsSequenceCollection for SequenceCollection {}
+
 impl IsElement for SequenceCollection {
-    const ELEMENT_TAG: &str = "SequenceCollection";
+    const ELEMENT_TAG: &str = Self::SEQEUNCE_COLLECTION_ELEMENT_TAG;
 
     fn inner_validate(
         &self,

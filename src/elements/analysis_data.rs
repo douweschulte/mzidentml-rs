@@ -4,20 +4,21 @@ use crate::{
     elements::{
         attributes::semver::SemVer, is_element::IsElement,
         protein_detection_list::ProteinDetectionList,
-        spectrum_identification_list::SpectrumIdentificationList,
+        spectrum_identification_list::IsSpectrumIdentificationList,
     },
     error::ValidationError,
 };
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct AnalysisData {
+#[serde(bound = "SIL: IsSpectrumIdentificationList")]
+pub struct AnalysisData<SIL: IsSpectrumIdentificationList> {
     #[serde(rename = "SpectrumIdentificationList")]
-    pub spectrum_identification_lists: Vec<SpectrumIdentificationList>,
+    pub spectrum_identification_lists: Vec<SIL>,
     #[serde(rename = "ProteinDetectionList")]
     pub protein_detection_list: Option<ProteinDetectionList>,
 }
 
-impl IsElement for AnalysisData {
+impl<SIL: IsSpectrumIdentificationList> IsElement for AnalysisData<SIL> {
     const ELEMENT_TAG: &str = "AnalysisData";
 
     fn inner_validate(

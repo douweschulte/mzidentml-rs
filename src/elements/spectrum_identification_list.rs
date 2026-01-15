@@ -1,14 +1,24 @@
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 
 use crate::{
     elements::{
-        attributes::semver::SemVer, cv_param::CvParam, fragmentation_table::FragmentationTable,
-        is_element::IsElement, spectrum_identification_result::SpectrumIdentificationResult,
+        attributes::semver::SemVer,
+        cv_param::CvParam,
+        fragmentation_table::FragmentationTable,
+        has_cv_params::{CvParamRule, HasCvParams},
+        is_element::IsElement,
+        spectrum_identification_result::SpectrumIdentificationResult,
         user_param::UserParam,
     },
     error::ValidationError,
-    has_cv_params,
 };
+
+pub trait IsSpectrumIdentificationList:
+    IsElement + HasCvParams + Clone + std::fmt::Debug + Serialize + DeserializeOwned
+{
+    const SPECTRUM_IDENTIFICATION_LIST_ELEMENT_TAG: &str = "SpectrumIdentificationList";
+    const SPECTRUM_IDENTIFICATION_LIST_CV_PARAM_RULES: &[CvParamRule] = &[];
+}
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SpectrumIdentificationList {
@@ -31,8 +41,10 @@ pub struct SpectrumIdentificationList {
     pub fragmentation_table: Option<FragmentationTable>,
 }
 
+impl IsSpectrumIdentificationList for SpectrumIdentificationList {}
+
 impl IsElement for SpectrumIdentificationList {
-    const ELEMENT_TAG: &str = "SpectrumIdentificationList";
+    const ELEMENT_TAG: &str = Self::SPECTRUM_IDENTIFICATION_LIST_ELEMENT_TAG;
 
     fn inner_validate(
         &self,
@@ -72,4 +84,10 @@ impl IsElement for SpectrumIdentificationList {
     }
 }
 
-has_cv_params!(SpectrumIdentificationList, cv_params);
+impl HasCvParams for SpectrumIdentificationList {
+    const CV_PARAM_RULES: &[CvParamRule] = Self::SPECTRUM_IDENTIFICATION_LIST_CV_PARAM_RULES;
+
+    fn cv_params(&self) -> impl Iterator<Item = &CvParam> {
+        self.cv_params.iter()
+    }
+}

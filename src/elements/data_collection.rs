@@ -3,20 +3,21 @@ use serde::{Deserialize, Serialize};
 use crate::{
     elements::{
         analysis_data::AnalysisData, attributes::semver::SemVer, inputs::Inputs,
-        is_element::IsElement,
+        is_element::IsElement, spectrum_identification_list::IsSpectrumIdentificationList,
     },
     error::ValidationError,
 };
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct DataCollection {
+#[serde(bound = "SIL: IsSpectrumIdentificationList")]
+pub struct DataCollection<SIL: IsSpectrumIdentificationList> {
     #[serde(rename = "Inputs")]
-    inputs: Inputs,
+    pub inputs: Inputs,
     #[serde(rename = "AnalysisData")]
-    analysis_data: AnalysisData,
+    pub analysis_data: AnalysisData<SIL>,
 }
 
-impl IsElement for DataCollection {
+impl<SIL: IsSpectrumIdentificationList> IsElement for DataCollection<SIL> {
     const ELEMENT_TAG: &str = "DataCollection";
 
     fn inner_validate(

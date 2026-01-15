@@ -41,6 +41,8 @@ pub enum ValidationError {
     Cv(#[from] CvError),
     #[error("{0} > {1} is missing")]
     MissingChild(String, &'static str),
+    #[error("{0}")]
+    IndexedRead(#[from] ReadIndexedError),
 }
 
 /// Error for violated CvParam rules
@@ -83,4 +85,42 @@ pub enum CvError {
     UnknownCv,
     #[error("Unknown CV term: `{0}:{1}`. Maybe the CV source is outdated?")]
     UnknownCvTerm(String, usize),
+}
+
+#[derive(Debug, Error)]
+pub enum IndexingError {
+    #[error("Unable to move cursor to position `{0}`: {1}")]
+    MoveCursor(usize, std::io::Error),
+    #[error("Unable to find ID in element at position")]
+    NoIdAttribute(u64),
+    #[error("Unable to find end of ID attribute in element at position {0}")]
+    IdAttributeNotClosed(u64),
+    #[error("Unable to process XML {0}")]
+    Xml(#[from] quick_xml::Error),
+    #[error("Validation error {0}")]
+    Validation(#[from] ValidationError),
+    #[error("Unable to process attribute: {0}")]
+    Attribute(#[from] quick_xml::events::attributes::AttrError),
+    #[error("{0}: Got {1} tag event, expected {2} tag.")]
+    InvalidEvent(String, &'static str, &'static str),
+    #[error("{0}: Got {1} tag, expected {2} tag.")]
+    InvalidTag(String, String, &'static str),
+    #[error("{0}: Unexpected EOF while looking for {1}")]
+    UnexpectedEOF(String, String),
+    #[error("{0}: {1}")]
+    Deserialization(String, quick_xml::DeError),
+}
+
+#[derive(Clone, Debug, Error)]
+pub enum ReadIndexedError {
+    #[error("Unknown identifier")]
+    UnknownIdentifier,
+    #[error("Unable to deserialize element {0} at position {1}: {2}")]
+    Deserialize(&'static str, u64, quick_xml::DeError),
+    #[error("File reader reference is poisened")]
+    PoisonedReader,
+    #[error("File reader not initialized")]
+    UninitializedReader,
+    #[error("Unable to move reader to pos {0}, {1}")]
+    Seek(u64, String),
 }

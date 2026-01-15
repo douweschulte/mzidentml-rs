@@ -1,28 +1,41 @@
+use std::io::{BufRead, Seek};
+
 use serde::{Deserialize, Serialize};
 
 use crate::{
     elements::{
         analysis_collection::AnalysisCollection,
+        analysis_data::AnalysisData,
         analysis_protocol_collection::AnalysisProtocolCollection,
-        analysis_software_list::AnalysisSoftwareList, attributes::semver::SemVer,
-        audit_collection::AuditCollection, bibliographic_reference::BibliographicReference,
-        data_collection::DataCollection, provider::Provider,
-        sequence_collection::SequenceCollection,
+        analysis_software_list::AnalysisSoftwareList,
+        attributes::semver::SemVer,
+        audit_collection::AuditCollection,
+        bibliographic_reference::BibliographicReference,
+        data_collection::DataCollection,
+        has_cv_params::{CvParamRule, HasCvParams},
+        provider::Provider,
+        sequence_collection::{IsSequenceCollection, SequenceCollection},
+        spectrum_identification_list::{IsSpectrumIdentificationList, SpectrumIdentificationList},
     },
     error::ValidationError,
-    has_cv_params,
+    indexed_elements::{
+        is_indexed_element::IsIndexedElement,
+        sequence_collection::SequenceCollection as IndexedSequenceCollection,
+        spectrum_identification_list::SpectrumIdentificationList as IndexedSpectrumIdentificationList,
+    },
 };
 
 use super::{cv_list::CvList, cv_param::CvParam, is_element::IsElement};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct MzIdentMl {
+#[serde(bound = "SC: IsSequenceCollection, SIL: IsSpectrumIdentificationList")]
+pub struct MzIdentMl<SC: IsSequenceCollection, SIL: IsSpectrumIdentificationList> {
     #[serde(default, rename = "@xmlns")]
     pub xmlns: String,
     // This is a workaround to get xsi-attributes running, see:
     // https://github.com/tafia/quick-xml/issues/553#issuecomment-1432966843
     #[serde(default, rename = "@xmlns:xsi", alias = "@xsi")]
-    pub xmlns_xsi: String,
+    pub xmlns_xsi: String, // TODO: Probably unnecessary
     // This is a workaround to get xsi-attributes running, see:
     // https://github.com/tafia/quick-xml/issues/553#issuecomment-1432966843
     #[serde(default, rename = "@xsi:schemaLocation", alias = "@schemaLocation")]
@@ -46,25 +59,67 @@ pub struct MzIdentMl {
     #[serde(rename = "AuditCollection")]
     pub audit_collection: Option<AuditCollection>,
     #[serde(rename = "SequenceCollection")]
-    pub sequence_collection: Option<SequenceCollection>,
+    pub sequence_collection: Option<SC>,
     #[serde(rename = "AnalysisCollection")]
     pub analysis_collection: AnalysisCollection,
     #[serde(rename = "AnalysisProtocolCollection")]
     pub analysis_protocol_collection: AnalysisProtocolCollection,
     #[serde(rename = "DataCollection")]
-    pub data_collection: DataCollection,
+    pub data_collection: DataCollection<SIL>,
     #[serde(rename = "BibliographicReference")]
     pub bibliographic_reference: Option<BibliographicReference>,
 }
 
-impl MzIdentMl {
+impl MzIdentMl<SequenceCollection, SpectrumIdentificationList> {
     pub fn validate_document(&self, strict: bool) -> Result<(), ValidationError> {
         let mut elements_path: Vec<String> = Vec::with_capacity(10); // TODO: Lookup actual mzIdentML depth
         self.validate(&self.version, strict, &mut elements_path, None)
     }
 }
 
-impl IsElement for MzIdentMl {
+impl MzIdentMl<IndexedSequenceCollection, IndexedSpectrumIdentificationList> {
+    pub fn validate_document<R: BufRead + Seek>(
+        &self,
+        strict: bool,
+        reader: &mut R,
+    ) -> Result<(), ValidationError> {
+        let mut elements_path: Vec<String> = Vec::with_capacity(10); // TODO: Lookup actual mzIdentML depth
+        self.validate(&self.version, strict, &mut elements_path, None)?;
+        elements_path.push(Self::ELEMENT_TAG.to_string());
+        if let Some(sequence_collection) = &self.sequence_collection {
+            sequence_collection.validate_indexed(
+                &self.version,
+                strict,
+                &mut elements_path,
+                None,
+                reader,
+            )?;
+        }
+        elements_path
+            .push(DataCollection::<IndexedSpectrumIdentificationList>::ELEMENT_TAG.to_string());
+        elements_path
+            .push(AnalysisData::<IndexedSpectrumIdentificationList>::ELEMENT_TAG.to_string());
+        for (elem_idx, elem) in self
+            .data_collection
+            .analysis_data
+            .spectrum_identification_lists
+            .iter()
+            .enumerate()
+        {
+            elem.validate_indexed(
+                &self.version,
+                strict,
+                &mut elements_path,
+                Some(elem_idx),
+                reader,
+            )?;
+        }
+
+        Ok(())
+    }
+}
+
+impl<SC: IsSequenceCollection, SIL: IsSpectrumIdentificationList> IsElement for MzIdentMl<SC, SIL> {
     const ELEMENT_TAG: &str = "MzIdentMl";
 
     fn inner_validate(
@@ -106,4 +161,12 @@ impl IsElement for MzIdentMl {
     }
 }
 
-has_cv_params!(MzIdentMl, cv_params);
+impl<SC: IsSequenceCollection, SIL: IsSpectrumIdentificationList> HasCvParams
+    for MzIdentMl<SC, SIL>
+{
+    const CV_PARAM_RULES: &[CvParamRule] = &[];
+
+    fn cv_params(&self) -> impl Iterator<Item = &CvParam> {
+        self.cv_params.iter()
+    }
+}
