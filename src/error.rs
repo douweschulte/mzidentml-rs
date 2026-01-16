@@ -13,8 +13,6 @@ pub enum Error {
     Cv(#[from] CvError),
     #[error("{0}")]
     Validation(#[from] ValidationError),
-    #[error("{0}")]
-    Indexing(#[from] IndexingError),
 }
 
 #[derive(Clone, Debug, Error)]
